@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./register.css";
+import ImageUpload from "../UIElements/ImageUpload";
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -8,6 +9,8 @@ export default function Register() {
     email: "",
     password: "",
   });
+  const [imageFile, setImageFile] = useState(null);
+
 
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate(); // Hook for redirection
@@ -15,33 +18,37 @@ export default function Register() {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage("");
-
+  
+    const formPayload = new FormData();
+    formPayload.append("username", formData.username);
+    formPayload.append("email", formData.email);
+    formPayload.append("password", formData.password);
+    if (imageFile) {
+      formPayload.append("image", imageFile);
+    }
+  
     try {
       const response = await fetch(import.meta.env.VITE_API_URL + "/api/auth/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: formPayload,
       });
-
-      const isJson = response.headers.get("content-type")?.includes("application/json");
-      const data = isJson ? await response.json() : { error: await response.text() };
-
+  
+      const data = await response.json();
       if (!response.ok) {
         throw new Error(data.error || "Registration failed");
       }
-
+  
       console.log("✅ Registration successful:", data);
-      navigate("/login"); // Redirect after successful registration
-
+      navigate("/login");
     } catch (error) {
       console.error("❌ Registration error:", error);
       setErrorMessage(error.message);
     }
   };
+  
 
   return (
     <div className="register-page">
@@ -84,6 +91,17 @@ export default function Register() {
               placeholder="Enter your password"
               required
             />
+            <ImageUpload
+              center
+              id="image"
+              onInput={(id, file, isValid) => {
+                if (isValid) {
+                  setImageFile(file);
+                }
+              }}
+              errorText="Please select an image"
+            />
+
           </div>
           <button type="submit" className="register-button">Register</button>
         </form>

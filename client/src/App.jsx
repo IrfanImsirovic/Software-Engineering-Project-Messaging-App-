@@ -5,6 +5,8 @@ import Login from "./components/login/login";
 import Home from "./components/home/home"; // New home component
 
 import "./App.css";
+import ChatScreen from "./components/chatUI/chatScreen";
+import Profile from "./components/profile/Profile";
 
 function App() {
   const [message, setMessage] = useState("Loading...");
@@ -31,6 +33,8 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/home" element={<Home />} />
+        <Route path="/chat" element={<div><ChatScreen/></div>} />
+        <Route path="/profile" element={<div><Profile/></div>} />
       </Routes>
     </Router>
   );
