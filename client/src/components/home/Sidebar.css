@@ -18,7 +18,7 @@
 .sidebar-header {
   display: flex;
   justify-content: space-around;
-  align-items: center; /*hiii this css*/
+  align-items: center; 
 }
 
 .sidebar-header button {
