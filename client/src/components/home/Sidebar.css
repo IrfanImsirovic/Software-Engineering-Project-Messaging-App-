@@ -4,8 +4,8 @@
   top: 0;
   width: 270px;
   height: 100%;
-  background-color: #ffffff;
-  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.05);
+  background-color: #f5f5f5;
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1);
   padding: 20px;
   box-sizing: border-box;
   font-family: 'Segoe UI', sans-serif;
@@ -60,164 +60,190 @@
   overflow-y: auto;
 }
 
-.friends-list,
-.pending-requests {
+.friends-list, .pending-requests {
   list-style: none;
   padding: 0;
   margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  margin-top: 5px;
 }
 
-.friend-item,
-.pending-item {
+.friend-item, .pending-item {
   display: flex;
   align-items: center;
-  background: #f9f9f9;
-  padding: 10px;
-  border-radius: 10px;
-  transition: background 0.2s, box-shadow 0.2s;
+  justify-content: space-between;
+  background: #fff;
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: #000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-.friend-item:hover,
-.pending-item:hover {
-  background-color: #eef6ff;
+.friend-item:hover, .pending-item:hover {
+  background-color: #f0f8ff;
 }
 
 .friend-avatar {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background-color: #ddd;
+  overflow: hidden;
   margin-right: 10px;
+  background-color: #e0e0e0;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  flex-shrink: 0;
 }
 
 .friend-avatar img {
-  width: 100%;
-  height: 100%;
+  width: 20px;
+  height: 20px;
   object-fit: cover;
 }
 
 .friend-profile {
-  flex: 1;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  align-items: center;
+  flex: 1;
+  justify-content: flex-start;
 }
 
 .friend-name {
-  font-weight: 600;
-  font-size: 14px;
-  color: #111;
+  font-weight: bold;
+  color: #000;
+  cursor: pointer;
+  flex: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  padding-left: 0;
 }
 
 .username {
-  font-size: 12px;
-  color: #666;
+  color: #000;
+  font-weight: bold;
 }
 
 .action-buttons {
   display: flex;
   gap: 6px;
+  margin-left: auto;
 }
 
 .icon-button {
   background: none;
   border: none;
-  border-radius: 50%;
-  padding: 6px;
   cursor: pointer;
-  transition: background 0.2s;
+  padding: 5px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
 }
 
 .icon-button:hover {
-  background-color: #e6e6e6;
+  background: none;
 }
 
 .action-icon {
-  width: 18px;
-  height: 18px;
-  filter: brightness(0) saturate(100%) invert(12%) sepia(98%) saturate(1394%) hue-rotate(206deg) brightness(90%) contrast(104%);
+  width: 22px;
+  height: 22px;
+  filter: invert(13%) sepia(97%) saturate(7492%) hue-rotate(210deg) brightness(90%) contrast(110%);
+  transition: filter 0.2s;
+}
+
+.icon-button:hover .action-icon {
+  filter: invert(13%) sepia(97%) saturate(7492%) hue-rotate(210deg) brightness(120%) contrast(120%);
 }
 
 .add-friend {
-  padding-top: 8px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  align-items: center;
+  margin-top: 5px;
 }
 
 .add-friend-row {
   display: flex;
-  gap: 8px;
+  flex-direction: row;
   align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .add-friend input {
-  flex: 1;
-  padding: 6px 10px;
-  border: 1px solid #ccc;
+  width: 140px;
+  max-width: 180px;
+  padding: 4px 10px;
+  border: 1.5px solid #001f3f;
   border-radius: 8px;
-  font-size: 14px;
-  background-color: #fff;
+  margin-bottom: 0;
+  font-size: 1rem;
+  outline: none;
+  background: #fff;
+  color: #001f3f;
   transition: border-color 0.2s, box-shadow 0.2s;
+  height: 24px;
 }
 
 .add-friend input:focus {
   border-color: #0056b3;
-  box-shadow: 0 0 4px rgba(0, 85, 204, 0.25);
-  outline: none;
+  box-shadow: 0 0 6px #001f3f33;
 }
 
 .add-friend-icon-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  background-color: #003366;
+  background: none;
+  border: none;
+  padding: 0 0 0 4px;
+  cursor: pointer;
+  border-radius: 8px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  border: none;
   transition: background 0.2s;
-}
-
-.add-friend-icon-btn:hover {
-  background-color: #004080;
+  width: 28px;
+  height: 28px;
+  min-width: 0;
+  min-height: 0;
 }
 
 .add-friend-icon {
-  width: 20px;
-  height: 20px;
-  filter: invert(100%);
+  width: 24px;
+  height: 24px;
+  filter: invert(13%) sepia(97%) saturate(7492%) hue-rotate(210deg) brightness(90%) contrast(110%);
+  transition: filter 0.2s;
+}
+
+.add-friend-icon-btn:hover .add-friend-icon {
+  filter: invert(13%) sepia(97%) saturate(7492%) hue-rotate(210deg) brightness(120%) contrast(120%);
+}
+
+.add-friend-icon-btn:hover {
+  background: none;
 }
 
 .message {
-  font-size: 13px;
+  margin-top: 5px;
+  margin-bottom: 12px;
   text-align: center;
-  padding: 6px;
+  font-size: 0.9rem;
+  padding: 5px 10px;
   border-radius: 6px;
-  margin-top: 4px;
 }
 
 .message.success {
-  background-color: #e6ffed;
-  color: #2e7d32;
+  color: #008000;
+  background-color: rgba(0, 128, 0, 0.1);
 }
 
 .message.error {
-  background-color: #ffe6e6;
-  color: #cc0000;
+  color: #dc3545;
+  background-color: rgba(220, 53, 69, 0.1);
 }
 
 .fade-out {
@@ -234,37 +260,60 @@
   }
 }
 
+.sidebar-tab-icon {
+  width: 28px;
+  height: 28px;
+  filter: invert(13%) sepia(97%) saturate(7492%) hue-rotate(210deg) brightness(90%) contrast(110%);
+  margin: 0 2px;
+}
+
+.sidebar-separator {
+  width: 400px;
+  height: 3px;
+  background: #001f3f;
+  border-radius: 2px;
+  margin-bottom: 20px;
+  margin-top: -10px;
+  margin-left: -20px;
+}
+
 .sidebar-tab-label {
-  font-size: 16px;
-  font-weight: bold;
-  color: #003366;
   text-align: center;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #001f3f;
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
 }
 
 .empty-message {
+  color: #666;
   font-style: italic;
-  font-size: 13px;
-  color: #999;
   text-align: center;
-  padding-top: 10px;
+  margin-top: 10px;
 }
 
 .sidebar-logout {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: 50%;
   text-align: center;
-  margin-top: auto;
 }
 
 .logout-button {
-  width: 100%;
+  width: 70%;
   padding: 10px 0;
-  background-color: #003366;
+  background-color: navy;
   color: white;
-  font-weight: 600;
-  font-size: 14px;
+  font-size: 1rem;
+  font-weight: bold;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background-color 0.2s;
 }
 
 .logout-button:hover {

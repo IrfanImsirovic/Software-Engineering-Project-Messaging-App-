@@ -1,3 +1,8 @@
+/* Add smooth scrolling to the entire application */
+html {
+  scroll-behavior: smooth;
+}
+
 .recent-chats {
   position: fixed;
   left: 0;
@@ -12,6 +17,28 @@
   flex-direction: column;
   z-index: 100;
   overflow-y: auto;
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #c1c1c1 transparent; /* Firefox */
+}
+
+/* Custom scrollbar for WebKit browsers (Chrome, Safari, newer Edge) */
+.recent-chats::-webkit-scrollbar {
+  width: 6px; /* width of the scrollbar */
+}
+
+.recent-chats::-webkit-scrollbar-track {
+  background: transparent; /* track color */
+  margin: 5px; /* add some space around the track */
+}
+
+.recent-chats::-webkit-scrollbar-thumb {
+  background-color: #c1c1c1; /* color of the scroll thumb */
+  border-radius: 20px; /* rounded corners */
+  transition: background-color 0.3s ease;
+}
+
+.recent-chats::-webkit-scrollbar-thumb:hover {
+  background-color: #a0a0a0; /* darker color on hover */
 }
 
 .recent-chats h2 {
@@ -133,9 +160,10 @@
 .error-message {
   color: #d32f2f;
   text-align: center;
-  margin-top: 20px;
-  font-style: italic;
-} 
+  margin-top: -5px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
 
 .group-chat-button {
   margin: 10px 0;
@@ -225,6 +253,26 @@
   overflow-y: auto;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
   animation: popIn 0.3s ease-out;
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #c1c1c1 transparent; /* Firefox */
+}
+
+/* Custom scrollbar for WebKit browsers (Chrome, Safari, newer Edge) */
+.modal-content::-webkit-scrollbar {
+  width: 6px; /* width of the scrollbar */
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: transparent; /* track color */
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background-color: #c1c1c1; /* color of the scroll thumb */
+  border-radius: 20px; /* rounded corners */
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+  background-color: #a0a0a0; /* darker color on hover */
 }
 
 @keyframes popIn {
@@ -247,12 +295,17 @@
 }
 
 .modal-input {
-  width: 100%;
+  width: 91%;
   padding: 10px 14px;
   margin-bottom: 1rem;
   font-size: 14px;
   border: 1px solid #ccc;
   border-radius: 8px;
+  background-color: #fff;
+  color: #333;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .friend-list {
@@ -262,6 +315,26 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #c1c1c1 transparent; /* Firefox */
+}
+
+/* Custom scrollbar for WebKit browsers (Chrome, Safari, newer Edge) */
+.friend-list::-webkit-scrollbar {
+  width: 6px; /* width of the scrollbar */
+}
+
+.friend-list::-webkit-scrollbar-track {
+  background: transparent; /* track color */
+}
+
+.friend-list::-webkit-scrollbar-thumb {
+  background-color: #c1c1c1; /* color of the scroll thumb */
+  border-radius: 20px; /* rounded corners */
+}
+
+.friend-list::-webkit-scrollbar-thumb:hover {
+  background-color: #a0a0a0; /* darker color on hover */
 }
 
 .friend-list label {
@@ -269,6 +342,35 @@
   align-items: center;
   font-size: 14px;
   gap: 8px;
+  color: #000;
+}
+
+.friend-list input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background-color: #fff;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  position: relative;
+}
+
+.friend-list input[type="checkbox"]:checked {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.friend-list input[type="checkbox"]:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 12px;
 }
 
 .modal-buttons {

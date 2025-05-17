@@ -9,7 +9,7 @@ export default function Home() {
   const username = localStorage.getItem("username");
   const [selectedChat, setSelectedChat] = useState(null); // Can hold either a friend or group
   console.log("🏠 Home render - selectedChat:", selectedChat);
-console.log("🏠 Home render - username:", username);
+  console.log("🏠 Home render - username:", username);
 
 
   // Handle selecting either a group or individual chat
@@ -23,6 +23,17 @@ console.log("🏠 Home render - username:", username);
     // Fetch recent chats and groups on initial load (this might already be handled in RecentChats)
   }, [username]);
 
+  // Generate a unique key for the ChatPage component
+  const getChatKey = (chat) => {
+    if (!chat) return 'no-chat';
+    if (typeof chat === 'string') return chat; // Just a username
+    if (chat.isGroup) return `group-${chat.id}`; // Group chat
+    if (chat.id) return `message-${chat.id}`; // Message object
+    if (chat.receiver) return chat.receiver; // Message DTO
+    if (chat.sender) return chat.sender; // Another message format
+    return JSON.stringify(chat); // Fallback
+  };
+
   return (
     <div className="home-page">
       <RecentChats username={username} onSelectFriend={handleSelectChat} />
@@ -35,7 +46,7 @@ console.log("🏠 Home render - username:", username);
             <ChatPage
               username={username}
               chat={selectedChat} // Pass the entire chat object
-              key={selectedChat.groupId || selectedChat.receiver} // Ensure a unique key for re-rendering
+              key={getChatKey(selectedChat)} // Use the helper function to generate a unique key
             />
           </div>
         ) : (

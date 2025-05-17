@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./RecentChats.css";
 import userIcon from "../../assets/icons/user.png";
+import groupIcon from "../../assets/icons/group_avatar.png";
 import { FaUsers } from "react-icons/fa"; // install with: npm i react-icons
 import ChatPage from "../chat-page/Chatpage"; // Import ChatPage directly
 
@@ -8,7 +9,6 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export default function RecentChats({ username ,onSelectFriend}) {
   const [recentChats, setRecentChats] = useState([]);
-  const [userGroups, setUserGroups] = useState([]); // Store the groups
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showGroupModal, setShowGroupModal] = useState(false);
@@ -16,6 +16,7 @@ export default function RecentChats({ username ,onSelectFriend}) {
   const [selectedFriends, setSelectedFriends] = useState([]);
   const [friendsList, setFriendsList] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null); // Keep track of the selected chat
+  const [groupNameError, setGroupNameError] = useState(""); // Error for group name validation
 
   
 
@@ -43,6 +44,15 @@ export default function RecentChats({ username ,onSelectFriend}) {
 
   // Function to create a group
   const handleCreateGroup = () => {
+    // Reset previous error
+    setGroupNameError("");
+    
+    // Validate group name
+    if (!groupName.trim()) {
+      setGroupNameError("Group name is required");
+      return;
+    }
+    
     const token = localStorage.getItem("authToken");
 
     // Create group
@@ -68,10 +78,12 @@ export default function RecentChats({ username ,onSelectFriend}) {
         setShowGroupModal(false);
         setGroupName("");
         setSelectedFriends([]);
+        setGroupNameError(""); // Clear any error
 
-        // Now refresh the recent chats and groups
-        refreshRecentChats();
-        fetchUserGroups();  // Fetch updated groups
+        // Add a slight delay before refreshing to allow backend processing
+        setTimeout(() => {
+          refreshRecentChats();
+        }, 500);
       })
       .catch((err) => {
         console.error(err);
@@ -93,6 +105,7 @@ export default function RecentChats({ username ,onSelectFriend}) {
         return res.json();
       })
       .then((data) => {
+        console.log("📩 Received recent chats:", data);
         setRecentChats(data);
       })
       .catch((err) => {
@@ -101,30 +114,7 @@ export default function RecentChats({ username ,onSelectFriend}) {
       });
   };
 
-  // Fetch user groups when component mounts
-  const fetchUserGroups = () => {
-    const token = localStorage.getItem("authToken");
-    fetch(`${API_URL}/api/groups/my`, {
-      headers: {
-        "Authorization": "Bearer " + token,
-      },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch user groups");
-        return res.json();
-      })
-      .then((data) => {
-        setUserGroups(data); // Set the groups for the user
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching user groups:", err);
-        setError("Could not load user groups");
-        setLoading(false);
-      });
-  };
-
-  // Fetch recent chats and user groups on component mount
+  // Fetch recent chats on component mount
   useEffect(() => {
     if (!username) return;
 
@@ -145,6 +135,7 @@ export default function RecentChats({ username ,onSelectFriend}) {
         return res.json();
       })
       .then((data) => {
+        console.log("📩 Initial recent chats load:", data);
         setRecentChats(data);
         setLoading(false);
       })
@@ -153,16 +144,18 @@ export default function RecentChats({ username ,onSelectFriend}) {
         setError("Could not load recent chats");
         setLoading(false);
       });
-
-    // Fetch user groups
-    fetchUserGroups();  // Fetch groups for the user
   }, [username]);
 
   // Format timestamp to a readable format
   const formatTime = (timestamp) => {
     if (!timestamp) return "";
 
-    const date = new Date(timestamp);
+    // Ensure timestamp is a Date object
+    const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
+    
+    // Check if the date is valid
+    if (isNaN(date.getTime())) return "";
+    
     const now = new Date();
 
     // Same day
@@ -183,7 +176,7 @@ export default function RecentChats({ username ,onSelectFriend}) {
   // Get chat partner name (the other person in the conversation)
   const getChatPartner = (chat) => {
     if (chat.isGroup) {
-      return chat.groupName;  // Display the group name if it's a group chat
+      return chat.name;  // Display the group name if it's a group chat
     }
 
     if (chat.sender === username) {
@@ -200,10 +193,72 @@ export default function RecentChats({ username ,onSelectFriend}) {
   };
 
   const handleSelectChat = (chat) => {
-    setSelectedChat(chat); // Set the selected chat (either a group or friend)
-    console.log("📥 Chat selected in RecentChats:", chat);
-    onSelectFriend(chat); // ✅ Notify parent
+    // Format the chat object appropriately based on whether it's a group or direct message
+    let formattedChat;
+    
+    if (chat.isGroup) {
+      // For group chats, create a properly formatted group object
+      formattedChat = {
+        id: chat.id,
+        name: chat.name,
+        isGroup: true
+      };
+    } else if (chat.sender && chat.receiver) {
+      // For direct messages, just pass the username of the chat partner
+      formattedChat = chat.sender === username ? chat.receiver : chat.sender;
+    } else {
+      // Already a string username
+      formattedChat = chat;
+    }
+    
+    console.log("📥 Chat selected in RecentChats:", formattedChat);
+    onSelectFriend(formattedChat); // Send to parent component
+  };
 
+  // Handle rendering recent chats which can be either direct messages or group chats
+  const renderRecentChat = (chat, index) => {
+    const isGroup = chat.isGroup === true;
+    const chatName = isGroup ? chat.name : (chat.sender === username ? chat.receiver : chat.sender);
+    const content = chat.content || "";
+    const showSenderName = chat.sender === username && !isGroup;
+    
+    // Ensure timestamp is properly formatted regardless of source
+    let timestamp = chat.timestamp;
+    if (timestamp && typeof timestamp === 'string') {
+      // If it's a string (ISO format from backend), convert to Date
+      timestamp = new Date(timestamp);
+    }
+
+    return (
+      <li key={`${isGroup ? 'group' : 'direct'}-${index}`} className="chat-item" onClick={() => handleSelectChat(chat)}>
+        <div className="avatar">
+          {isGroup ? 
+            <img src={groupIcon} alt="Group" /> : 
+            <img src={userIcon} alt="User" />
+          }
+        </div>
+
+        <div className="chat-details">
+          <div className="chat-content">
+            <span className="username">{chatName}</span>
+            <div className="message-preview">
+              {showSenderName ? (
+                <span className="message-text">
+                  <span className="you">You: </span>
+                  {truncateMessage(content)}
+                </span>
+              ) : (
+                <span className="message-text">
+                  {chat.sender !== "SYSTEM" && chat.sender !== username && !isGroup && `${chat.sender}: `}
+                  {truncateMessage(content)}
+                </span>
+              )}
+            </div>
+          </div>
+          <span className="timestamp">{formatTime(timestamp)}</span>
+        </div>
+      </li>
+    );
   };
 
   return (
@@ -216,78 +271,15 @@ export default function RecentChats({ username ,onSelectFriend}) {
         </button>
       </div>
 
-      <h2>Your Groups</h2>
-      {loading && <div className="loading">Loading your groups...</div>}
-      {!loading && error && <div className="error-message">{error}</div>}
-
-      {!loading && !error && userGroups.length === 0 && (
-        <div className="no-groups">You are not a member of any groups yet.</div>
-      )}
-
-      <ul className="chat-list">
-        {userGroups.map((group, index) => (
-          <li key={index} className="chat-item" onClick={() => handleSelectChat({ ...group, isGroup: true })}>
-          <div className="avatar">
-                <img src={userIcon} alt="User" />
-              </div>
-            <div className="chat-details">
-            <div className="chat-content">
-            <span className="username">{group.name}</span>
-            <div className="message-preview">
-  {group.lastMessage?.sender === username ? (
-    <span className="message-text">
-      <span className="you">You: </span>
-      {truncateMessage(group.lastMessage?.content)}
-    </span>
-  ) : (
-    <span className="message-text">
-      {truncateMessage(group.lastMessage?.content)}
-    </span>
-  )}
-</div>
-<span className="timestamp">{formatTime(group.lastMessage?.timestamp)}</span>
-
-            </div>
-            
-            </div>
-          </li>
-        ))}
-      </ul>
-
       <h2>Recent Chats</h2>
+      {loading && <div className="loading">Loading your chats...</div>}
+      {!loading && error && <div className="error-message">{error}</div>}
       {!loading && !error && recentChats.length === 0 && (
         <div className="no-chats">No recent conversations</div>
       )}
 
       <ul className="chat-list">
-        {recentChats.map((chat, index) => {
-          const chatPartner = getChatPartner(chat);
-
-          return (
-            <li key={index} className="chat-item" onClick={() => handleSelectChat(chatPartner)}>
-              <div className="avatar">
-                <img src={userIcon} alt="User" />
-              </div>
-
-              <div className="chat-details">
-                <div className="chat-content">
-                  <span className="username">{chatPartner}</span>
-                  <div className="message-preview">
-                    {chat.sender === username ? (
-                      <span className="message-text">
-                        <span className="you">You: </span>
-                        {truncateMessage(chat.content)}
-                      </span>
-                    ) : (
-                      <span className="message-text">{truncateMessage(chat.content)}</span>
-                    )}
-                  </div>
-                </div>
-                <span className="timestamp">{formatTime(chat.timestamp)}</span>
-              </div>
-            </li>
-          );
-        })}
+        {recentChats.map((chat, index) => renderRecentChat(chat, index))}
       </ul>
      
       {selectedChat && (
@@ -307,6 +299,7 @@ export default function RecentChats({ username ,onSelectFriend}) {
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
             />
+            {groupNameError && <p className="error-message">{groupNameError}</p>}
 
             <div className="friend-list">
               {friendsList.map((friend) => (
@@ -325,7 +318,10 @@ export default function RecentChats({ username ,onSelectFriend}) {
               <button className="create-btn" onClick={handleCreateGroup}>
                 Create
               </button>
-              <button className="cancel-btn" onClick={() => setShowGroupModal(false)}>
+              <button className="cancel-btn" onClick={() => {
+                setShowGroupModal(false);
+                setGroupNameError(""); // Clear error when closing modal
+              }}>
                 Cancel
               </button>
             </div>
