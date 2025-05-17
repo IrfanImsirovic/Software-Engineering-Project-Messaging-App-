@@ -46,6 +46,7 @@ public class GroupMessageController {
         message.setContent(dto.getContent());
         message.setTimestamp(LocalDateTime.now());
         message.setGroup(group);
+        message.setImageUrl(dto.getImageUrl());
 
         groupMessageRepository.save(message);
 

@@ -152,6 +152,36 @@
     width: fit-content;
 }
 
+/* Special styling for image-only messages */
+.message-bubble.image-only {
+    padding: 0;
+    background-color: transparent !important;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.message-bubble.image-only .message-image-container {
+    margin: 0;
+}
+
+.message-bubble.image-only .message-content-wrapper {
+    background-color: transparent;
+    padding: 0;
+    margin: 0;
+    width: auto;
+}
+
+.message-bubble.image-only .message-time {
+    background-color: rgba(0, 0, 0, 0.4);
+    color: white;
+    border-radius: 10px;
+    padding: 2px 5px;
+    font-size: 9px;
+    right: 5px;
+    bottom: 5px;
+    z-index: 2;
+}
+
 .message-sender {
     font-weight: bold;
     font-size: 13px;
@@ -175,6 +205,7 @@
     max-width: 100%;
     padding-right: 40px; /* Make space for the timestamp */
     min-height: 20px; /* Ensure there's enough space for the timestamp */
+    margin-bottom: 5px; /* Add margin when followed by an image */
 }
 
 .message-bubble.sent {
@@ -274,5 +305,77 @@
 
 .chat-input button:hover img {
     filter: invert(33%) sepia(97%) saturate(1500%) hue-rotate(200deg) brightness(100%) contrast(95%); /* lighter blue */
+}
+
+.message-image-container {
+    margin-top: 8px;
+    margin-bottom: 8px;
+    max-width: 100%;
+    position: relative;
+    display: flex;
+    justify-content: center;
+}
+
+.message-image {
+    max-width: 220px;
+    max-height: 220px;
+    border-radius: 12px;
+    display: block;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    object-fit: contain;
+    opacity: 0;
+    transform: scale(0.95);
+}
+
+/* Larger images for image-only messages */
+.message-bubble.image-only .message-image {
+    max-width: 280px;
+    max-height: 280px;
+    border-radius: 12px;
+}
+
+.message-image.loaded {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.message-image:hover {
+    transform: scale(1.03);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.image-loading-indicator {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #3366cc;
+    animation: spin 1s ease infinite;
+    z-index: 1;
+}
+
+.gallery-button {
+    margin-right: 5px;
+}
+
+/* Loading spinner for image upload */
+.uploading::after {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+    margin-left: 5px;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
   

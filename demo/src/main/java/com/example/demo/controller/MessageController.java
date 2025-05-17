@@ -64,6 +64,7 @@ public class MessageController {
         msg.setReceiver(receiver.getUsername());
         msg.setContent(messageDTO.getContent());
         msg.setTimestamp(LocalDateTime.now());
+        msg.setImageUrl(messageDTO.getImageUrl());
 
         messageRepository.save(msg);
         messagingTemplate.convertAndSend("/topic/messages/" + receiver.getUsername(), msg);

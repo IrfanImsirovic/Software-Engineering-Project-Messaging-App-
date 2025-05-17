@@ -31,6 +31,8 @@ public class SecurityConfig {
                                 "/api/auth/register",
                                 "/api/auth/login",
                                 "/api/test",
+                                "/api/uploads/images/**",
+                                "/uploads/**",
                                 "/error",
                                 "/chat.html",
                                 "/ws/**",

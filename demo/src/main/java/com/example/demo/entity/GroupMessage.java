@@ -21,6 +21,7 @@ public class GroupMessage {
     private String sender;
     private String content;
     private LocalDateTime timestamp;
+    private String imageUrl; // URL to the stored image (optional)
 
     @ManyToOne
     @JoinColumn(name = "group_id")
