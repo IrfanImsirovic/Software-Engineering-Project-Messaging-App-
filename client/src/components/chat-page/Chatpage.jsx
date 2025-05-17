@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Client } from "@stomp/stompjs";
 import "./Chatpage.css";
 import sendIcon from "../../assets/icons/send_icon.png";
+import galleryIcon from "../../assets/icons/gallery.png";
 import userIcon from "../../assets/icons/user.png";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -11,8 +12,12 @@ export default function ChatPage({ username, chat }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [connected, setConnected] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [imageLoading, setImageLoading] = useState({});
+  const [modalImage, setModalImage] = useState(null);
   const clientRef = useRef(null);
   const chatBoxRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const isGroup = chat?.isGroup === true;
   const chatTitle = isGroup ? chat.name : (chat.username || chat);
@@ -54,6 +59,7 @@ export default function ChatPage({ username, chat }) {
           client.subscribe(topic, (message) => {
             const receivedMsg = JSON.parse(message.body);
             console.log("📨 Received group message:", receivedMsg);
+            console.log("📨 Image URL in message:", receivedMsg.imageUrl);
             
             // Map the received message to the format expected by the UI
             const formattedMsg = {
@@ -61,6 +67,8 @@ export default function ChatPage({ username, chat }) {
               sender: receivedMsg.sender,
               content: receivedMsg.content,
               timestamp: receivedMsg.timestamp,
+              imageUrl: receivedMsg.imageUrl,
+              id: receivedMsg.id // Make sure we have an ID for image loading state
             };
             
             setMessages((prev) => [...prev, formattedMsg]);
@@ -72,6 +80,7 @@ export default function ChatPage({ username, chat }) {
           client.subscribe(topic, (message) => {
             const msg = JSON.parse(message.body);
             console.log("📨 Received message:", msg);
+            console.log("📨 Image URL in direct message:", msg.imageUrl);
             
             setMessages((prev) => [...prev, msg]);
           });
@@ -94,7 +103,87 @@ export default function ChatPage({ username, chat }) {
     };
   }, [username, chat]);
 
-  // Send message
+  // Handle image upload
+  const handleImageUpload = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file is an image
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    setUploading(true);
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const token = localStorage.getItem("authToken");
+    fetch(`${API_URL}/api/uploads/image`, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token
+      },
+      body: formData
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        // Send message with image
+        console.log("📸 Upload response:", data);
+        sendMessageWithImage(data.url);
+      })
+      .catch(error => {
+        console.error('Error uploading image:', error);
+        alert('Failed to upload image');
+      })
+      .finally(() => {
+        setUploading(false);
+        // Clear the file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      });
+  };
+
+  // Send message with image
+  const sendMessageWithImage = (imageUrl) => {
+    const client = clientRef.current;
+    if (!connected || !client?.connected) return;
+
+    const now = new Date().toISOString();
+    const content = input.trim() || ""; // Allow empty content for image-only messages
+
+    const messagePayload = isGroup
+      ? {
+          groupId: chat.id,
+          sender: username,
+          content: content,
+          timestamp: now,
+          imageUrl: imageUrl
+        }
+      : {
+          sender: username,
+          receiver: chat.username || chat,
+          content: content,
+          timestamp: now,
+          imageUrl: imageUrl
+        };
+
+    client.publish({
+      destination: isGroup ? "/app/group" : "/app/chat",
+      body: JSON.stringify(messagePayload),
+    });
+
+    setInput("");
+  };
+
+  // Send text message
   const sendMessage = () => {
     const client = clientRef.current;
     if (!input.trim() || !connected || !client?.connected) return;
@@ -133,6 +222,16 @@ export default function ChatPage({ username, chat }) {
   const isFirstInSequence = (index) =>
     index === 0 || messages[index].sender !== messages[index - 1].sender;
 
+  // Open image in modal
+  const openImageModal = (imageUrl) => {
+    setModalImage(imageUrl);
+  };
+
+  // Close image modal
+  const closeImageModal = () => {
+    setModalImage(null);
+  };
+
   return (
     <div className="chat-container">
       <div className="chat-header">
@@ -151,6 +250,7 @@ export default function ChatPage({ username, chat }) {
           const isMe = msg.sender === username;
           const isSystem = msg.sender === "SYSTEM";
           const first = isFirstInSequence(idx);
+          const hasImage = msg.imageUrl && msg.imageUrl.trim() !== '';
 
           // Handle system messages differently
           if (isSystem) {
@@ -176,10 +276,30 @@ export default function ChatPage({ username, chat }) {
               {!isMe && !first && <div className="avatar-spacer"></div>}
 
               <div className={`message-container ${isMe ? "sent-container" : "received-container"}`}>
-                <div className={`message-bubble ${isMe ? "sent" : "received"}`}>
+                <div className={`message-bubble ${isMe ? "sent" : "received"} ${hasImage && !msg.content ? "image-only" : ""}`}>
                   {!isMe && first && <div className="message-sender">{msg.sender}</div>}
                   <div className="message-content-wrapper">
-                    <div className="message-content">{msg.content}</div>
+                    {msg.content && <div className="message-content">{msg.content}</div>}
+                    {hasImage && (
+                      <div className={`message-image-container ${!msg.content ? "image-only-container" : ""}`}>
+                        {imageLoading[msg.id] !== false && <div className="image-loading-indicator"></div>}
+                        <img 
+                          src={`${API_URL}${msg.imageUrl}`} 
+                          alt="Shared image" 
+                          className={`message-image ${imageLoading[msg.id] === false ? 'loaded' : ''}`}
+                          onClick={() => openImageModal(`${API_URL}${msg.imageUrl}`)}
+                          onLoad={() => {
+                            console.log("✅ Image loaded successfully:", `${API_URL}${msg.imageUrl}`);
+                            setImageLoading(prev => ({...prev, [msg.id]: false}));
+                            chatBoxRef.current?.scrollTo(0, chatBoxRef.current.scrollHeight);
+                          }}
+                          onError={(e) => {
+                            console.error("❌ Failed to load image:", `${API_URL}${msg.imageUrl}`, e);
+                            setImageLoading(prev => ({...prev, [msg.id]: false}));
+                          }}
+                        />
+                      </div>
+                    )}
                     <span className="message-time">{formatTime(msg.timestamp)}</span>
                   </div>
                 </div>
@@ -189,6 +309,16 @@ export default function ChatPage({ username, chat }) {
         })}
       </div>
 
+      {/* Image Modal */}
+      {modalImage && (
+        <div className="image-modal-overlay" onClick={closeImageModal}>
+          <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close-button" onClick={closeImageModal}>&times;</button>
+            <img src={modalImage} alt="Enlarged view" />
+          </div>
+        </div>
+      )}
+
       <div className="chat-footer">
         <div className="chat-input">
           <input
@@ -197,9 +327,33 @@ export default function ChatPage({ username, chat }) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            disabled={!connected}
+            disabled={!connected || uploading}
           />
-          <button onClick={sendMessage} disabled={!connected || !input.trim()}>
+          
+          {/* Hidden file input */}
+          <input
+            type="file"
+            ref={fileInputRef}
+            style={{ display: 'none' }}
+            accept="image/*"
+            onChange={handleImageUpload}
+            disabled={!connected || uploading}
+          />
+          
+          {/* Gallery button */}
+          <button 
+            onClick={() => fileInputRef.current && fileInputRef.current.click()} 
+            disabled={!connected || uploading}
+            className="gallery-button"
+          >
+            <img src={galleryIcon} alt="Gallery" />
+          </button>
+          
+          {/* Send button */}
+          <button 
+            onClick={sendMessage} 
+            disabled={!connected || uploading || !input.trim()}
+          >
             <img src={sendIcon} alt="Send" />
           </button>
         </div>

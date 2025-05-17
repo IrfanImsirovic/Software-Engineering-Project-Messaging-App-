@@ -6,4 +6,5 @@ import lombok.Data;
 public class GroupMessageDTO {
     private Long groupId;
     private String content;
+    private String imageUrl;
 }

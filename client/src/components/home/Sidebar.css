@@ -268,13 +268,7 @@
 }
 
 .sidebar-separator {
-  width: 400px;
-  height: 3px;
-  background: #001f3f;
-  border-radius: 2px;
-  margin-bottom: 20px;
-  margin-top: -10px;
-  margin-left: -20px;
+  display: none;
 }
 
 .sidebar-tab-label {
@@ -283,6 +277,7 @@
   font-weight: bold;
   color: #001f3f;
   margin-bottom: 12px;
+  margin-top: 0px;
   letter-spacing: 0.5px;
 }
 
@@ -306,7 +301,7 @@
 .logout-button {
   width: 70%;
   padding: 10px 0;
-  background-color: navy;
+  background-color: #051C9B;
   color: white;
   font-size: 1rem;
   font-weight: bold;
@@ -317,5 +312,5 @@
 }
 
 .logout-button:hover {
-  background-color: #004080;
+  background-color: #007BFF;
 }

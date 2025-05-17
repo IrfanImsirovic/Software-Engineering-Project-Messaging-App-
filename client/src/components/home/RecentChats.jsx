@@ -136,6 +136,10 @@ export default function RecentChats({ username ,onSelectFriend}) {
       })
       .then((data) => {
         console.log("📩 Initial recent chats load:", data);
+        // Log to check image URLs
+        data.forEach(chat => {
+          console.log(`Chat from ${chat.sender} has imageUrl:`, chat.imageUrl);
+        });
         setRecentChats(data);
         setLoading(false);
       })
@@ -222,6 +226,19 @@ export default function RecentChats({ username ,onSelectFriend}) {
     const content = chat.content || "";
     const showSenderName = chat.sender === username && !isGroup;
     
+    // Check for image - if content is empty and we have an ID, it might be an image-only message
+    // since the recent chats API might not include the image URL
+    const hasImage = (chat.imageUrl && chat.imageUrl.trim() !== '') || 
+                     (chat.image_url && chat.image_url.trim() !== '') || 
+                     (chat.image && chat.image.trim() !== '') ||
+                     (content === "" && chat.id); // Empty content may indicate image-only message
+                    
+    // For debugging
+    console.log(`Rendering chat ${index}:`, chat);
+    console.log(`Is likely an image? ${hasImage}, content empty: ${content === ""}, has ID: ${Boolean(chat.id)}`);
+    
+    const senderName = chat.sender === username ? "You" : chat.sender;
+    
     // Ensure timestamp is properly formatted regardless of source
     let timestamp = chat.timestamp;
     if (timestamp && typeof timestamp === 'string') {
@@ -242,7 +259,16 @@ export default function RecentChats({ username ,onSelectFriend}) {
           <div className="chat-content">
             <span className="username">{chatName}</span>
             <div className="message-preview">
-              {showSenderName ? (
+              {hasImage ? (
+                <span className="message-text">
+                  {chat.sender === username ? (
+                    <span><span className="you">You</span> sent an image</span>
+                  ) : (
+                    <span>{chat.sender} sent an image</span>
+                  )}
+                  {content && ` - ${truncateMessage(content)}`}
+                </span>
+              ) : showSenderName ? (
                 <span className="message-text">
                   <span className="you">You: </span>
                   {truncateMessage(content)}
@@ -250,7 +276,7 @@ export default function RecentChats({ username ,onSelectFriend}) {
               ) : (
                 <span className="message-text">
                   {chat.sender !== "SYSTEM" && chat.sender !== username && !isGroup && `${chat.sender}: `}
-                  {truncateMessage(content)}
+                  {content ? truncateMessage(content) : "Sent a message"}
                 </span>
               )}
             </div>

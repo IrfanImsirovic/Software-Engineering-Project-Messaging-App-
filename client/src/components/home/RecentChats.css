@@ -17,28 +17,27 @@ html {
   flex-direction: column;
   z-index: 100;
   overflow-y: auto;
-  scrollbar-width: thin; /* Firefox */
-  scrollbar-color: #c1c1c1 transparent; /* Firefox */
+  /* Hide scrollbar while maintaining scrollability */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
 }
 
-/* Custom scrollbar for WebKit browsers (Chrome, Safari, newer Edge) */
+/* Hide scrollbar for Chrome, Safari and Opera */
 .recent-chats::-webkit-scrollbar {
-  width: 6px; /* width of the scrollbar */
+  display: none;
 }
 
+/* Removing the existing WebKit scrollbar styles as they're no longer needed */
 .recent-chats::-webkit-scrollbar-track {
-  background: transparent; /* track color */
-  margin: 5px; /* add some space around the track */
+  display: none;
 }
 
 .recent-chats::-webkit-scrollbar-thumb {
-  background-color: #c1c1c1; /* color of the scroll thumb */
-  border-radius: 20px; /* rounded corners */
-  transition: background-color 0.3s ease;
+  display: none;
 }
 
 .recent-chats::-webkit-scrollbar-thumb:hover {
-  background-color: #a0a0a0; /* darker color on hover */
+  display: none;
 }
 
 .recent-chats h2 {
@@ -202,19 +201,19 @@ html {
 }
 .create-group-wrapper {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   margin: 1rem 0;
 }
 
 .create-group-button {
-  background: linear-gradient(135deg, #007bff, #0056d2);
+  background: #051C9B; /* Update to specified color */
   color: #fff;
   border: none;
   padding: 12px 20px;
   font-size: 15px;
   font-weight: 600;
   border-radius: 30px;
-  box-shadow: 0 4px 14px rgba(0, 123, 255, 0.3);
+  box-shadow: 0 4px 14px rgba(5, 28, 155, 0.3);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -223,9 +222,9 @@ html {
 }
 
 .create-group-button:hover {
-  background: linear-gradient(135deg, #0056d2, #0041a3);
+  background: #007BFF; /* Update to specified hover color */
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(0, 86, 210, 0.4);
+  box-shadow: 0 6px 18px rgba(0, 123, 255, 0.4);
 }
 
 .create-group-button .icon {
@@ -392,12 +391,12 @@ html {
 }
 
 .create-btn {
-  background: #007bff;
+  background: #051C9B; /* Update to specified color */
   color: white;
 }
 
 .create-btn:hover {
-  background: #0056d2;
+  background: #007BFF; /* Update to specified hover color */
 }
 
 .cancel-btn {

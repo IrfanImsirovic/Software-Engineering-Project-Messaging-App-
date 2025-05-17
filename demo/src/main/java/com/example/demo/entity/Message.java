@@ -19,6 +19,7 @@ public class Message {
     private String receiver;
     private String content;
     private LocalDateTime timestamp;
+    private String imageUrl; // URL to the stored image (optional)
 
     // Getters and setters
     public Long getId() {
@@ -55,5 +56,13 @@ public class Message {
 
     public void setTimestamp(LocalDateTime timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

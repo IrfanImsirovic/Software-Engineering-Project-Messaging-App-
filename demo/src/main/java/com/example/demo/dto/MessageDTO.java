@@ -3,6 +3,7 @@ package com.example.demo.dto;
 public class MessageDTO {
     private String receiver;
     private String content;
+    private String imageUrl;
 
     // Getters and setters
     public String getReceiver() {
@@ -19,5 +20,13 @@ public class MessageDTO {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

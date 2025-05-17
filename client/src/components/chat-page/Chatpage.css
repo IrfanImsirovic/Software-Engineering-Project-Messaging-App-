@@ -88,6 +88,7 @@
 .message-wrapper {
     display: flex;
     width: 100%;
+    align-items: flex-start; /* Ensure consistent vertical alignment */
 }
 
 .sent-wrapper {
@@ -117,6 +118,7 @@
     justify-content: center;
     align-self: flex-start;
     flex-shrink: 0;
+    margin-top: 4px; /* Add consistent top margin to align with messages */
 }
 
 .sender-avatar img {
@@ -152,6 +154,37 @@
     width: fit-content;
 }
 
+/* Special styling for image-only messages */
+.message-bubble.image-only {
+    padding: 0;
+    background-color: transparent !important;
+    border-radius: 0;
+    box-shadow: none;
+    margin-top: 0; /* Remove any top margin */
+}
+
+.message-bubble.image-only .message-image-container {
+    margin: 0;
+}
+
+.message-bubble.image-only .message-content-wrapper {
+    background-color: transparent;
+    padding: 0;
+    margin: 0;
+    width: auto;
+}
+
+.message-bubble.image-only .message-time {
+    background-color: rgba(0, 0, 0, 0.4);
+    color: white;
+    border-radius: 10px;
+    padding: 2px 5px;
+    font-size: 9px;
+    right: 5px;
+    bottom: 5px;
+    z-index: 2;
+}
+
 .message-sender {
     font-weight: bold;
     font-size: 13px;
@@ -175,6 +208,7 @@
     max-width: 100%;
     padding-right: 40px; /* Make space for the timestamp */
     min-height: 20px; /* Ensure there's enough space for the timestamp */
+    margin-bottom: 5px; /* Add margin when followed by an image */
 }
 
 .message-bubble.sent {
@@ -233,7 +267,7 @@
     align-items: center;
     gap: 0.5rem;
     width: 100%;
-    max-width: 1000px;
+    max-width: 960px;
     margin: 0 auto;
     padding: 0 15px;
 }
@@ -274,5 +308,183 @@
 
 .chat-input button:hover img {
     filter: invert(33%) sepia(97%) saturate(1500%) hue-rotate(200deg) brightness(100%) contrast(95%); /* lighter blue */
+}
+
+.message-image-container {
+    margin-top: 4px; /* Reduced margin to align better with avatar */
+    margin-bottom: 4px;
+    max-width: 100%;
+    position: relative;
+    display: flex;
+    justify-content: center;
+}
+
+.message-image {
+    max-width: 220px;
+    max-height: 220px;
+    border-radius: 12px;
+    display: block;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    object-fit: contain;
+    opacity: 0;
+    transform: scale(0.95);
+}
+
+/* Larger images for image-only messages */
+.message-bubble.image-only .message-image {
+    max-width: 280px;
+    max-height: 280px;
+    border-radius: 12px;
+}
+
+.message-image.loaded {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.message-image:hover {
+    transform: scale(1.03);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.image-loading-indicator {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #3366cc;
+    animation: spin 1s ease infinite;
+    z-index: 1;
+}
+
+.gallery-button {
+    margin-right: 0;
+}
+
+/* Loading spinner for image upload */
+.uploading::after {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+    margin-left: 5px;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Add specific styles for image-only container to align with avatar */
+.image-only-container {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.received-wrapper .message-bubble.image-only {
+    margin-top: 0px; /* Match the avatar top margin */
+}
+
+/* Adjust avatar alignment specifically for image messages */
+.received-wrapper:has(.message-bubble.image-only) .sender-avatar {
+    margin-top: 26px; /* Fine-tune alignment with image messages */
+}
+
+@supports not (selector(:has(*))) {
+    /* Fallback for browsers without :has support */
+    .received-wrapper .sender-avatar {
+        margin-top: 8px;
+    }
+}
+
+/* Add margin between consecutive image messages */
+.message-wrapper + .message-wrapper .message-bubble.image-only {
+    margin-top: 4px; /* Base margin for image messages */
+}
+
+/* Increase margin between two consecutive image messages from the same person */
+.message-wrapper:has(.message-bubble.image-only) + .message-wrapper:has(.message-bubble.image-only):not(:has(.sender-avatar)) {
+    margin-top: 4px; /* Increased spacing between consecutive images */
+}
+
+/* Fallback for browsers without :has support */
+@supports not (selector(:has(*))) {
+    .message-wrapper + .message-wrapper .message-bubble.image-only {
+        margin-top: 20px;
+    }
+}
+
+/* Image Modal Styles */
+.image-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at center, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.35) 100%);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px); /* For Safari */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    cursor: pointer;
+    animation: fadeIn 0.2s ease;
+}
+
+.image-modal-content {
+    max-width: 90%;
+    max-height: 90%;
+    animation: scaleIn 0.2s ease;
+    filter: drop-shadow(0 5px 25px rgba(0, 0, 0, 0.5));
+    position: relative;
+}
+
+.image-modal-content img {
+    max-width: 100%;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+.modal-close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: rgba(128, 128, 128, 0.7);
+    border: none;
+    color: white;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 1001;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.modal-close-button:hover {
+    background-color: rgba(128, 128, 128, 0.9);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+    from { transform: scale(0.9); }
+    to { transform: scale(1); }
 }
   
