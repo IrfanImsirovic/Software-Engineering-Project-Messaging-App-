@@ -14,6 +14,7 @@ export default function ChatPage({ username, chat }) {
   const [connected, setConnected] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [imageLoading, setImageLoading] = useState({});
+  const [modalImage, setModalImage] = useState(null);
   const clientRef = useRef(null);
   const chatBoxRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -221,6 +222,16 @@ export default function ChatPage({ username, chat }) {
   const isFirstInSequence = (index) =>
     index === 0 || messages[index].sender !== messages[index - 1].sender;
 
+  // Open image in modal
+  const openImageModal = (imageUrl) => {
+    setModalImage(imageUrl);
+  };
+
+  // Close image modal
+  const closeImageModal = () => {
+    setModalImage(null);
+  };
+
   return (
     <div className="chat-container">
       <div className="chat-header">
@@ -276,7 +287,7 @@ export default function ChatPage({ username, chat }) {
                           src={`${API_URL}${msg.imageUrl}`} 
                           alt="Shared image" 
                           className={`message-image ${imageLoading[msg.id] === false ? 'loaded' : ''}`}
-                          onClick={() => window.open(`${API_URL}${msg.imageUrl}`, '_blank')}
+                          onClick={() => openImageModal(`${API_URL}${msg.imageUrl}`)}
                           onLoad={() => {
                             console.log("✅ Image loaded successfully:", `${API_URL}${msg.imageUrl}`);
                             setImageLoading(prev => ({...prev, [msg.id]: false}));
@@ -297,6 +308,16 @@ export default function ChatPage({ username, chat }) {
           );
         })}
       </div>
+
+      {/* Image Modal */}
+      {modalImage && (
+        <div className="image-modal-overlay" onClick={closeImageModal}>
+          <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close-button" onClick={closeImageModal}>&times;</button>
+            <img src={modalImage} alt="Enlarged view" />
+          </div>
+        </div>
+      )}
 
       <div className="chat-footer">
         <div className="chat-input">
