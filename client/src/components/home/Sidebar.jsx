@@ -7,6 +7,10 @@ import notificationIcon from "../../assets/icons/notification.png";
 import addFriendIcon from "../../assets/icons/add-friend.png";
 import acceptIcon from "../../assets/icons/accept_icon.png";
 import rejectIcon from "../../assets/icons/reject_icon.png";
+import logoutIcon from "../../assets/icons/logout.png";
+import UserProfile from "./UserProfile";
+import ProfilePicture from "../common/ProfilePicture";
+import "../common/ProfilePicture.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -18,6 +22,7 @@ export default function Sidebar({ username, onSelectFriend }) {
   const [newFriend, setNewFriend] = useState("");
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [showProfile, setShowProfile] = useState(false);
 
   const authHeader = {
     "Authorization": "Bearer " + localStorage.getItem("authToken")
@@ -124,6 +129,14 @@ export default function Sidebar({ username, onSelectFriend }) {
     navigate("/login");
   };
 
+  const handleProfileClick = () => {
+    setShowProfile(true);
+  };
+
+  const handleCloseProfile = () => {
+    setShowProfile(false);
+  };
+
   return (
     <div className="sidebar">
       <div className="sidebar-header">
@@ -156,7 +169,7 @@ export default function Sidebar({ username, onSelectFriend }) {
                 >
                   <div className="friend-profile">
                     <div className="friend-avatar">
-                      <img src={userIcon} alt="User" />
+                      <ProfilePicture username={friend} />
                     </div>
                     <div className="friend-name">
                       {friend}
@@ -186,7 +199,7 @@ export default function Sidebar({ username, onSelectFriend }) {
                 <li key={req.id} className="pending-item">
                   <div className="friend-profile">
                     <div className="friend-avatar">
-                      <img src={userIcon} alt="User" />
+                      <ProfilePicture username={req.sender.username} />
                     </div>
                     <span className="username">{req.sender.username}</span>
                   </div>
@@ -218,7 +231,27 @@ export default function Sidebar({ username, onSelectFriend }) {
           </div>
         )}
       </div>
-      <button onClick={handleLogout} className="logout-button sidebar-logout">Logout</button>
+      
+      <div className="sidebar-footer">
+        <button onClick={handleProfileClick} className="profile-button" title="Profile">
+          <img src={userIcon} alt="Profile" />
+        </button>
+        <button onClick={handleLogout} className="logout-button" title="Logout">
+          <img src={logoutIcon} alt="Logout" />
+        </button>
+      </div>
+      
+      {showProfile && (
+        <div className="profile-modal-overlay" onClick={handleCloseProfile}>
+          <div className="profile-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="profile-header">
+              <h2>User Profile</h2>
+              <button className="close-button" onClick={handleCloseProfile}>&times;</button>
+            </div>
+            <UserProfile username={username} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
