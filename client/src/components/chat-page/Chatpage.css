@@ -48,8 +48,8 @@
 }
 
 .friend-avatar img {
-    width: 24px;
-    height: 24px;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
 }
 
@@ -122,8 +122,8 @@
 }
 
 .sender-avatar img {
-    width: 20px;
-    height: 20px;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
 }
 
@@ -302,12 +302,12 @@
 .chat-input button img {
     width: 24px;
     height: 24px;
-    filter: invert(13%) sepia(97%) saturate(7492%) hue-rotate(210deg) brightness(90%) contrast(110%); /* navy blue */
+    filter: invert(10%) sepia(82%) saturate(5268%) hue-rotate(239deg) brightness(50%) contrast(101%); /* #051C9B navy blue */
     transition: filter 0.2s;
 }
 
 .chat-input button:hover img {
-    filter: invert(33%) sepia(97%) saturate(1500%) hue-rotate(200deg) brightness(100%) contrast(95%); /* lighter blue */
+    filter: invert(30%) sepia(82%) saturate(1600%) hue-rotate(205deg) brightness(95%) contrast(95%); /* lighter blue */
 }
 
 .message-image-container {

@@ -42,6 +42,9 @@ public class User {
     @Email(message = "Email must be valid")
     @Column(unique = true, nullable = false)
     private String email;
+    
+    @Column(name = "profile_picture_url")
+    private String profilePictureUrl;
 
     @ManyToMany
     @JoinTable(

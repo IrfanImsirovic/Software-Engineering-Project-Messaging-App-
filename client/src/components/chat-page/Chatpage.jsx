@@ -4,6 +4,8 @@ import "./Chatpage.css";
 import sendIcon from "../../assets/icons/send_icon.png";
 import galleryIcon from "../../assets/icons/gallery.png";
 import userIcon from "../../assets/icons/user.png";
+import ProfilePicture from "../common/ProfilePicture";
+import "../common/ProfilePicture.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 const SOCKET_URL = import.meta.env.VITE_API_URL.replace(/^http/, "ws") + "/ws";
@@ -237,7 +239,7 @@ export default function ChatPage({ username, chat }) {
       <div className="chat-header">
         <div className="friend-profile">
           <div className="friend-avatar">
-            <img src={userIcon} alt="User" />
+            <ProfilePicture username={chatTitle} />
           </div>
           <span className="friend-name">{chatTitle}</span>
         </div>
@@ -270,7 +272,7 @@ export default function ChatPage({ username, chat }) {
             >
               {!isMe && first && (
                 <div className="sender-avatar">
-                  <img src={userIcon} alt="sender" />
+                  <ProfilePicture username={msg.sender} />
                 </div>
               )}
               {!isMe && !first && <div className="avatar-spacer"></div>}
@@ -284,10 +286,10 @@ export default function ChatPage({ username, chat }) {
                       <div className={`message-image-container ${!msg.content ? "image-only-container" : ""}`}>
                         {imageLoading[msg.id] !== false && <div className="image-loading-indicator"></div>}
                         <img 
-                          src={`${API_URL}${msg.imageUrl}`} 
+                          src={`${API_URL}${msg.imageUrl}?t=${msg.timestamp || Date.now()}`} 
                           alt="Shared image" 
                           className={`message-image ${imageLoading[msg.id] === false ? 'loaded' : ''}`}
-                          onClick={() => openImageModal(`${API_URL}${msg.imageUrl}`)}
+                          onClick={() => openImageModal(`${API_URL}${msg.imageUrl}?t=${msg.timestamp || Date.now()}`)}
                           onLoad={() => {
                             console.log("✅ Image loaded successfully:", `${API_URL}${msg.imageUrl}`);
                             setImageLoading(prev => ({...prev, [msg.id]: false}));

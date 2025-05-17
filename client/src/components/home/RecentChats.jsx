@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./RecentChats.css";
 import userIcon from "../../assets/icons/user.png";
 import groupIcon from "../../assets/icons/group_avatar.png";
 import { FaUsers } from "react-icons/fa"; // install with: npm i react-icons
 import ChatPage from "../chat-page/Chatpage"; // Import ChatPage directly
+import ProfilePicture from "../common/ProfilePicture";
+import "../common/ProfilePicture.css";
+import { Client } from "@stomp/stompjs";
 
 const API_URL = import.meta.env.VITE_API_URL;
+const SOCKET_URL = import.meta.env.VITE_API_URL.replace(/^http/, "ws") + "/ws";
 
 export default function RecentChats({ username ,onSelectFriend}) {
   const [recentChats, setRecentChats] = useState([]);
@@ -17,8 +21,8 @@ export default function RecentChats({ username ,onSelectFriend}) {
   const [friendsList, setFriendsList] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null); // Keep track of the selected chat
   const [groupNameError, setGroupNameError] = useState(""); // Error for group name validation
-
-  
+  const [connected, setConnected] = useState(false);
+  const clientRef = useRef(null);
 
   // Function to toggle friend selection
   const toggleFriendSelection = (friend) => {
@@ -28,6 +32,62 @@ export default function RecentChats({ username ,onSelectFriend}) {
         : [...prevSelected, friend]
     );
   };
+
+  // Set up WebSocket connection to receive real-time updates
+  useEffect(() => {
+    if (!username) return;
+    
+    const token = localStorage.getItem("authToken");
+    if (!token) return;
+    
+    const client = new Client({
+      brokerURL: SOCKET_URL,
+      connectHeaders: { Authorization: "Bearer " + token.trim() },
+      reconnectDelay: 5000,
+      debug: (str) => console.log("STOMP DEBUG (RecentChats):", str),
+      onConnect: () => {
+        console.log("✅ RecentChats: Connected to WebSocket");
+        setConnected(true);
+        
+        // Subscribe to direct messages for this user
+        const directMessageTopic = `/topic/messages/${username}`;
+        console.log("📡 RecentChats: Subscribing to direct messages topic:", directMessageTopic);
+        
+        client.subscribe(directMessageTopic, (message) => {
+          const msg = JSON.parse(message.body);
+          console.log("📨 RecentChats: Received direct message:", msg);
+          
+          // Update recent chats when a new message arrives
+          refreshRecentChats();
+        });
+        
+        // Also subscribe to user-specific group messages topic if available
+        const groupMessagesTopic = `/topic/user/${username}/groups`;
+        console.log("📡 RecentChats: Subscribing to group messages topic:", groupMessagesTopic);
+        
+        client.subscribe(groupMessagesTopic, (message) => {
+          console.log("📨 RecentChats: Received group message notification");
+          
+          // Update recent chats when a new group message arrives
+          refreshRecentChats();
+        });
+      },
+      onStompError: (frame) => {
+        console.error("❌ RecentChats: Broker error:", frame.headers["message"]);
+      },
+      onDisconnect: () => {
+        console.log("🔌 RecentChats: Disconnected");
+        setConnected(false);
+      },
+    });
+
+    client.activate();
+    clientRef.current = client;
+
+    return () => {
+      client.deactivate();
+    };
+  }, [username]);
 
   // Fetch friends list once when modal opens
   useEffect(() => {
@@ -41,6 +101,21 @@ export default function RecentChats({ username ,onSelectFriend}) {
         .catch(console.error);
     }
   }, [showGroupModal]);
+
+  // Set up periodic polling as a fallback mechanism
+  useEffect(() => {
+    if (!username) return;
+    
+    // Refresh recent chats every 30 seconds as a fallback
+    const pollingInterval = setInterval(() => {
+      console.log("♻️ RecentChats: Polling for updates");
+      refreshRecentChats();
+    }, 30000); // 30 seconds
+    
+    return () => {
+      clearInterval(pollingInterval);
+    };
+  }, [username]);
 
   // Function to create a group
   const handleCreateGroup = () => {
@@ -94,6 +169,11 @@ export default function RecentChats({ username ,onSelectFriend}) {
   // Function to refresh recent chats
   const refreshRecentChats = () => {
     const token = localStorage.getItem("authToken");
+    if (!token) return;
+
+    // Use a timestamp to track this request
+    const requestTimestamp = Date.now();
+    console.log(`📩 Fetching recent chats (${requestTimestamp})...`);
 
     fetch(`${API_URL}/api/messages/recent`, {
       headers: {
@@ -105,11 +185,17 @@ export default function RecentChats({ username ,onSelectFriend}) {
         return res.json();
       })
       .then((data) => {
-        console.log("📩 Received recent chats:", data);
-        setRecentChats(data);
+        console.log(`📩 Received recent chats (${requestTimestamp}):`, data.length);
+        // Sort chats by timestamp, most recent first
+        const sortedChats = [...data].sort((a, b) => {
+          const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+          const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+          return timeB - timeA;
+        });
+        setRecentChats(sortedChats);
       })
       .catch((err) => {
-        console.error("Error fetching recent chats:", err);
+        console.error(`Error fetching recent chats (${requestTimestamp}):`, err);
         setError("Could not load recent chats");
       });
   };
@@ -136,10 +222,6 @@ export default function RecentChats({ username ,onSelectFriend}) {
       })
       .then((data) => {
         console.log("📩 Initial recent chats load:", data);
-        // Log to check image URLs
-        data.forEach(chat => {
-          console.log(`Chat from ${chat.sender} has imageUrl:`, chat.imageUrl);
-        });
         setRecentChats(data);
         setLoading(false);
       })
@@ -251,7 +333,11 @@ export default function RecentChats({ username ,onSelectFriend}) {
         <div className="avatar">
           {isGroup ? 
             <img src={groupIcon} alt="Group" /> : 
-            <img src={userIcon} alt="User" />
+            <ProfilePicture 
+              username={chat.sender === username ? chat.receiver : chat.sender} 
+              size="medium"
+              key={`chat-${index}-${Date.now()}`}
+            />
           }
         </div>
 

@@ -1,0 +1,36 @@
+.profile-picture-container {
+  overflow: hidden;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.profile-picture-container.loading {
+  opacity: 0.7;
+}
+
+.profile-picture-sm {
+  width: 32px;
+  height: 32px;
+}
+
+.profile-picture-md {
+  width: 40px;
+  height: 40px;
+}
+
+.profile-picture-lg {
+  width: 50px;
+  height: 50px;
+}
+
+.profile-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+} 
