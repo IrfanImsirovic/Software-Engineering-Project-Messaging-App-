@@ -52,25 +52,29 @@ export default function ChatPage({ username, chat }) {
           const topic = `/topic/group/${chat.id}`;
           console.log("📡 Subscribing to group topic:", topic);
           client.subscribe(topic, (message) => {
-            const msg = JSON.parse(message.body);
-            console.log("📨 Received group message:", msg);
-      
-            if (msg.groupId !== chat.id) return;
-            setMessages((prev) => [...prev, msg]);
+            const receivedMsg = JSON.parse(message.body);
+            console.log("📨 Received group message:", receivedMsg);
+            
+            // Map the received message to the format expected by the UI
+            const formattedMsg = {
+              groupId: chat.id,
+              sender: receivedMsg.sender,
+              content: receivedMsg.content,
+              timestamp: receivedMsg.timestamp,
+            };
+            
+            setMessages((prev) => [...prev, formattedMsg]);
           });
         } else {
+          const topic = `/topic/messages/${username}`;
+          console.log("📡 Subscribing to topic:", topic);
 
-        const topic = `/topic/messages/${username}`;
-        console.log("📡 Subscribing to topic:", topic);
-
-        client.subscribe(topic, (message) => {
-          const msg = JSON.parse(message.body);
-          console.log("📨 Received message:", msg);
-
-          
-
-          setMessages((prev) => [...prev, msg]);
-        });
+          client.subscribe(topic, (message) => {
+            const msg = JSON.parse(message.body);
+            console.log("📨 Received message:", msg);
+            
+            setMessages((prev) => [...prev, msg]);
+          });
         }
       },
       onStompError: (frame) => {
@@ -116,7 +120,8 @@ export default function ChatPage({ username, chat }) {
       body: JSON.stringify(messagePayload),
     });
 
-    setMessages((prev) => [...prev, messagePayload]);
+    // Don't add message locally - let the WebSocket handle it
+    // The message will be received back through the subscription
     setInput("");
   };
 
@@ -144,7 +149,19 @@ export default function ChatPage({ username, chat }) {
         {messages.map((msg, idx) => {
           console.log("🧾 Rendering message:", msg)
           const isMe = msg.sender === username;
+          const isSystem = msg.sender === "SYSTEM";
           const first = isFirstInSequence(idx);
+
+          // Handle system messages differently
+          if (isSystem) {
+            return (
+              <div key={idx} className="system-wrapper">
+                <div className="message-bubble system">
+                  {msg.content}
+                </div>
+              </div>
+            );
+          }
 
           return (
             <div

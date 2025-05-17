@@ -30,7 +30,7 @@ public class GroupMessageController {
 
     @MessageMapping("/group")
     public void sendGroupMessage(@Payload GroupMessageDTO dto, Principal principal) {
-        ChatGroup group = chatGroupRepository.findById(dto.getGroupId())
+        ChatGroup group = chatGroupRepository.findByIdWithMembers(dto.getGroupId())
                 .orElseThrow(() -> new RuntimeException("Group not found"));
 
         boolean isMember = group.getMembers().stream()
@@ -57,7 +57,7 @@ public class GroupMessageController {
     // ✅ REST endpoint to load group message history
     @GetMapping("/history")
     public List<GroupMessage> getGroupChatHistory(@RequestParam Long groupId, Principal principal) {
-        ChatGroup group = chatGroupRepository.findById(groupId)
+        ChatGroup group = chatGroupRepository.findByIdWithMembers(groupId)
                 .orElseThrow(() -> new RuntimeException("Group not found"));
 
         boolean isMember = group.getMembers().stream()
