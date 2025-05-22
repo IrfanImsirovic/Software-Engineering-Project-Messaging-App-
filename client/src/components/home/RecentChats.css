@@ -167,69 +167,26 @@ html {
 .group-chat-button {
   margin: 10px 0;
 }
+/* === Group Chat Button === */
 .group-chat-button button {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
   background-color: #4caf50;
-  color: white;
+  color: #ffffff;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-}
-.modal-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex; align-items: center; justify-content: center;
-}
-.modal {
-  background: white;
-  padding: 20px;
-  border-radius: 6px;
-  width: 300px;
-}
-.friend-selection {
-  margin: 10px 0;
-  max-height: 150px;
-  overflow-y: auto;
-}
-.modal-actions {
-  display: flex;
-  justify-content: space-between;
-}
-.create-group-wrapper {
-  display: flex;
-  justify-content: center;
-  margin: 1rem 0;
-}
-
-.create-group-button {
-  background: #051C9B; /* Update to specified color */
-  color: #fff;
-  border: none;
-  padding: 12px 20px;
-  font-size: 15px;
   font-weight: 600;
-  border-radius: 30px;
-  box-shadow: 0 4px 14px rgba(5, 28, 155, 0.3);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  transition: all 0.3s ease-in-out;
+  transition: background-color 0.2s ease-in-out;
 }
 
-.create-group-button:hover {
-  background: #007BFF; /* Update to specified hover color */
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(0, 123, 255, 0.4);
+.group-chat-button button:hover {
+  background-color: #43a047;
 }
 
-.create-group-button .icon {
-  font-size: 18px;
-}
+/* === Modal Overlay === */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -243,6 +200,7 @@ html {
   z-index: 999;
 }
 
+/* === Modal Content === */
 .modal-content {
   background: #ffffff;
   border-radius: 16px;
@@ -252,39 +210,33 @@ html {
   overflow-y: auto;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
   animation: popIn 0.3s ease-out;
-  scrollbar-width: thin; /* Firefox */
-  scrollbar-color: #c1c1c1 transparent; /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 transparent;
 }
 
-/* Custom scrollbar for WebKit browsers (Chrome, Safari, newer Edge) */
-.modal-content::-webkit-scrollbar {
-  width: 6px; /* width of the scrollbar */
+/* Scrollbar - WebKit */
+.modal-content::-webkit-scrollbar,
+.friend-list::-webkit-scrollbar {
+  width: 6px;
 }
 
-.modal-content::-webkit-scrollbar-track {
-  background: transparent; /* track color */
+.modal-content::-webkit-scrollbar-track,
+.friend-list::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-.modal-content::-webkit-scrollbar-thumb {
-  background-color: #c1c1c1; /* color of the scroll thumb */
-  border-radius: 20px; /* rounded corners */
+.modal-content::-webkit-scrollbar-thumb,
+.friend-list::-webkit-scrollbar-thumb {
+  background-color: #c1c1c1;
+  border-radius: 20px;
 }
 
-.modal-content::-webkit-scrollbar-thumb:hover {
-  background-color: #a0a0a0; /* darker color on hover */
+.modal-content::-webkit-scrollbar-thumb:hover,
+.friend-list::-webkit-scrollbar-thumb:hover {
+  background-color: #a0a0a0;
 }
 
-@keyframes popIn {
-  from {
-    opacity: 0;
-    transform: scale(0.92);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
+/* === Modal Header === */
 .modal-content h2 {
   margin-bottom: 1rem;
   color: #007bff;
@@ -293,20 +245,20 @@ html {
   text-align: center;
 }
 
+/* === Input Field === */
 .modal-input {
   width: 91%;
   padding: 10px 14px;
-  margin-bottom: 1rem;
+  margin: 0 auto 1rem;
   font-size: 14px;
   border: 1px solid #ccc;
   border-radius: 8px;
-  background-color: #fff;
-  color: #333;
+  background-color: #ffffff;
+  color: #333333;
   display: block;
-  margin-left: auto;
-  margin-right: auto;
 }
 
+/* === Friend List === */
 .friend-list {
   max-height: 200px;
   overflow-y: auto;
@@ -314,26 +266,8 @@ html {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  scrollbar-width: thin; /* Firefox */
-  scrollbar-color: #c1c1c1 transparent; /* Firefox */
-}
-
-/* Custom scrollbar for WebKit browsers (Chrome, Safari, newer Edge) */
-.friend-list::-webkit-scrollbar {
-  width: 6px; /* width of the scrollbar */
-}
-
-.friend-list::-webkit-scrollbar-track {
-  background: transparent; /* track color */
-}
-
-.friend-list::-webkit-scrollbar-thumb {
-  background-color: #c1c1c1; /* color of the scroll thumb */
-  border-radius: 20px; /* rounded corners */
-}
-
-.friend-list::-webkit-scrollbar-thumb:hover {
-  background-color: #a0a0a0; /* darker color on hover */
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 transparent;
 }
 
 .friend-list label {
@@ -341,7 +275,7 @@ html {
   align-items: center;
   font-size: 14px;
   gap: 8px;
-  color: #000;
+  color: #000000;
 }
 
 .friend-list input[type="checkbox"] {
@@ -349,10 +283,8 @@ html {
   height: 16px;
   border: 1px solid #ccc;
   border-radius: 3px;
-  background-color: #fff;
+  background-color: #ffffff;
   appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
   cursor: pointer;
   position: relative;
 }
@@ -368,10 +300,11 @@ html {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: white;
+  color: #ffffff;
   font-size: 12px;
 }
 
+/* === Modal Buttons === */
 .modal-buttons {
   display: flex;
   justify-content: space-between;
@@ -391,19 +324,65 @@ html {
 }
 
 .create-btn {
-  background: #051C9B; /* Update to specified color */
-  color: white;
+  background: #051C9B;
+  color: #ffffff;
 }
 
 .create-btn:hover {
-  background: #007BFF; /* Update to specified hover color */
+  background: #007BFF;
 }
 
 .cancel-btn {
   background: #f2f2f2;
-  color: #333;
+  color: #333333;
 }
 
 .cancel-btn:hover {
   background: #e0e0e0;
+}
+
+/* === Create Group Button (Wrapper) === */
+.create-group-wrapper {
+  display: flex;
+  justify-content: center;
+  margin: 1rem 0;
+}
+
+/* === Create Group Button (Floating) === */
+.create-group-button {
+  background: #051C9B;
+  color: #ffffff;
+  border: none;
+  padding: 12px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 30px;
+  box-shadow: 0 4px 14px rgba(5, 28, 155, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+
+.create-group-button:hover {
+  background: #007BFF;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 123, 255, 0.4);
+}
+
+.create-group-button .icon {
+  font-size: 18px;
+}
+
+/* === Pop-in Animation === */
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
