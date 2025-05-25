@@ -8,10 +8,10 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "group_messages")
 @Getter
 @Setter
 @NoArgsConstructor
-@Table(name = "group_messages")
 public class GroupMessage {
 
     @Id
@@ -19,9 +19,13 @@ public class GroupMessage {
     private Long id;
 
     private String sender;
+
+    // allow arbitrarily large Base64-ciphertext
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
+
     private LocalDateTime timestamp;
-    private String imageUrl; // URL to the stored image (optional)
+    private String imageUrl;
 
     @ManyToOne
     @JoinColumn(name = "group_id")

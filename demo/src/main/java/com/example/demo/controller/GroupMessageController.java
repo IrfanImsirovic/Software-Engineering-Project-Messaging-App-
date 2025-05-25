@@ -5,17 +5,19 @@ import com.example.demo.entity.ChatGroup;
 import com.example.demo.entity.GroupMessage;
 import com.example.demo.repository.ChatGroupRepository;
 import com.example.demo.repository.GroupMessageRepository;
+import com.example.demo.util.SimpleXorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.web.bind.annotation.*; 
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
-@RestController 
+@RestController
 @RequestMapping("/api/group-messages")
 public class GroupMessageController {
 
@@ -35,24 +37,27 @@ public class GroupMessageController {
 
         boolean isMember = group.getMembers().stream()
                 .anyMatch(u -> u.getUsername().equals(principal.getName()));
-
         if (!isMember) {
             System.out.println("❌ Not a member of this group.");
             return;
         }
 
+        // Encrypt the message content
+        String encrypted = SimpleXorUtil.encrypt(dto.getContent());
+
         GroupMessage message = new GroupMessage();
         message.setSender(principal.getName());
-        message.setContent(dto.getContent());
+        message.setContent(encrypted);
         message.setTimestamp(LocalDateTime.now());
         message.setGroup(group);
         message.setImageUrl(dto.getImageUrl());
 
         groupMessageRepository.save(message);
 
+        // Decrypt before broadcasting to clients
+        message.setContent(SimpleXorUtil.decrypt(encrypted));
         messagingTemplate.convertAndSend("/topic/group/" + dto.getGroupId(), message);
         System.out.println("✅ Group message sent: " + message.getContent());
-
     }
 
     // ✅ REST endpoint to load group message history
@@ -63,12 +68,15 @@ public class GroupMessageController {
 
         boolean isMember = group.getMembers().stream()
                 .anyMatch(u -> u.getUsername().equals(principal.getName()));
-
         if (!isMember) {
             throw new RuntimeException("You are not a member of this group");
         }
 
-        return groupMessageRepository.findByGroupIdOrderByTimestampAsc(groupId);
+        // Fetch and decrypt history
+        return groupMessageRepository
+                .findByGroupIdOrderByTimestampAsc(groupId)
+                .stream()
+                .peek(gm -> gm.setContent(SimpleXorUtil.decrypt(gm.getContent())))
+                .collect(Collectors.toList());
     }
-    
 }
