@@ -48,10 +48,8 @@ public class GroupService {
         group.setMembers(members);
         group.setOwner(creator);
 
-        // Save group first to generate ID
         ChatGroup savedGroup = chatGroupRepository.save(group);
 
-        // Create system message
         GroupMessage systemMessage = new GroupMessage();
         systemMessage.setSender("SYSTEM");
         systemMessage.setContent(creator.getUsername() + " has created the group.");
@@ -60,7 +58,6 @@ public class GroupService {
 
         groupMessageRepository.save(systemMessage);
 
-        // Send message to WebSocket topic
         messagingTemplate.convertAndSend("/topic/group/" + savedGroup.getId(), systemMessage);
 
         return savedGroup;
@@ -87,7 +84,6 @@ public class GroupService {
         group.getMembers().add(newUser);
         chatGroupRepository.save(group);
 
-        // Send system message
         GroupMessage systemMessage = new GroupMessage();
         systemMessage.setSender("SYSTEM");
         systemMessage.setContent(usernameToAdd + " has been added to the group by " + requesterUsername + ".");
@@ -259,7 +255,6 @@ public class GroupService {
             throw new RuntimeException("Only the owner can delete the group");
         }
 
-        // Create and save the message BEFORE deleting the group
         GroupMessage systemMessage = new GroupMessage();
         systemMessage.setSender("SYSTEM");
         systemMessage.setContent("Group has been deleted by the owner.");
@@ -270,7 +265,6 @@ public class GroupService {
 
         messagingTemplate.convertAndSend("/topic/group/" + groupId, systemMessage);
 
-        // Now safely delete the group
         chatGroupRepository.delete(group);
     }
 

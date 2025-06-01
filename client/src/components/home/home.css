@@ -24,7 +24,7 @@ body {
     height: 100vh;
     text-align: center;
     padding: 30px;
-    padding-left: 280px; /* Make room for recent chats sidebar */
+    padding-left: 280px;
     position: relative;
   }
   
@@ -82,7 +82,7 @@ body {
   }
   
   .welcome-message {
-    color: #004285; /* Navy blue color */
+    color: #004285; 
     font-size: 1.8rem;
     font-weight: bold;
     letter-spacing: 0.5px;

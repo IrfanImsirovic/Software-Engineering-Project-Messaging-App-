@@ -17,17 +17,14 @@ html {
   flex-direction: column;
   z-index: 100;
   overflow-y: auto;
-  /* Hide scrollbar while maintaining scrollability */
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; 
+  -ms-overflow-style: none; 
 }
 
-/* Hide scrollbar for Chrome, Safari and Opera */
 .recent-chats::-webkit-scrollbar {
   display: none;
 }
 
-/* Removing the existing WebKit scrollbar styles as they're no longer needed */
 .recent-chats::-webkit-scrollbar-track {
   display: none;
 }
@@ -167,7 +164,7 @@ html {
 .group-chat-button {
   margin: 10px 0;
 }
-/* === Group Chat Button === */
+
 .group-chat-button button {
   display: flex;
   align-items: center;
@@ -186,7 +183,6 @@ html {
   background-color: #43a047;
 }
 
-/* === Modal Overlay === */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -200,7 +196,6 @@ html {
   z-index: 999;
 }
 
-/* === Modal Content === */
 .modal-content {
   background: #ffffff;
   border-radius: 16px;
@@ -214,7 +209,6 @@ html {
   scrollbar-color: #c1c1c1 transparent;
 }
 
-/* Scrollbar - WebKit */
 .modal-content::-webkit-scrollbar,
 .friend-list::-webkit-scrollbar {
   width: 6px;
@@ -236,7 +230,6 @@ html {
   background-color: #a0a0a0;
 }
 
-/* === Modal Header === */
 .modal-content h2 {
   margin-bottom: 1rem;
   color: #007bff;
@@ -245,7 +238,6 @@ html {
   text-align: center;
 }
 
-/* === Input Field === */
 .modal-input {
   width: 91%;
   padding: 10px 14px;
@@ -258,7 +250,6 @@ html {
   display: block;
 }
 
-/* === Friend List === */
 .friend-list {
   max-height: 200px;
   overflow-y: auto;
@@ -316,11 +307,10 @@ html {
 }
 .friend-list label span.username {
   font-weight: 600;
-  color: #333;
+  color: #161515;
   flex: 1;
 }
 
-/* === Modal Buttons === */
 .modal-buttons {
   display: flex;
   justify-content: space-between;
@@ -357,14 +347,12 @@ html {
   background: #e0e0e0;
 }
 
-/* === Create Group Button (Wrapper) === */
 .create-group-wrapper {
   display: flex;
   justify-content: center;
   margin: 1rem 0;
 }
 
-/* === Create Group Button (Floating) === */
 .create-group-button {
   background: #051C9B;
   color: #ffffff;
@@ -391,7 +379,6 @@ html {
   font-size: 18px;
 }
 
-/* === Pop-in Animation === */
 @keyframes popIn {
   from {
     opacity: 0;

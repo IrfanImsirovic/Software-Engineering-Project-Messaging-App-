@@ -31,19 +31,16 @@ public class FileUploadController {
         }
 
         try {
-            // Check if the file is an image
             String contentType = file.getContentType();
             if (contentType == null || !contentType.startsWith("image/")) {
                 return ResponseEntity.badRequest().body("Only image files are allowed");
             }
 
-            // Create the upload directory if it doesn't exist
             File directory = new File(uploadDir);
             if (!directory.exists()) {
                 directory.mkdirs();
             }
 
-            // Generate a unique filename to prevent collisions
             String originalFilename = file.getOriginalFilename();
             String fileExtension = "";
             
@@ -53,21 +50,14 @@ public class FileUploadController {
             
             String newFilename = UUID.randomUUID().toString() + fileExtension;
             
-            // Save the file
             Path targetLocation = Paths.get(uploadDir).resolve(newFilename);
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
-            // Return both API URL and direct file access URL
             String apiUrl = "/api/uploads/images/" + newFilename;
             String directUrl = "/uploads/" + newFilename;
-            
-            // Log the created file path for debugging
-            System.out.println("📸 File saved at: " + targetLocation.toAbsolutePath());
-            System.out.println("🔗 API URL: " + apiUrl);
-            System.out.println("🔗 Direct URL: " + directUrl);
 
             Map<String, String> response = new HashMap<>();
-            response.put("url", directUrl);  // Use the direct URL for better performance
+            response.put("url", directUrl);  
             
             return ResponseEntity.ok(response);
         } catch (IOException ex) {
@@ -89,7 +79,7 @@ public class FileUploadController {
             
             return ResponseEntity.ok()
                     .header("Content-Type", contentType)
-                    .header("Cache-Control", "max-age=31536000, public") // Cache for 1 year
+                    .header("Cache-Control", "max-age=31536000, public")
                     .header("Pragma", "cache")
                     .body(imageBytes);
         } catch (IOException e) {
@@ -99,7 +89,6 @@ public class FileUploadController {
 
     @GetMapping("/test-access")
     public ResponseEntity<?> testAccess() {
-        // Get the absolute path to the upload directory
         Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
         File directory = uploadPath.toFile();
         

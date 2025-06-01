@@ -10,7 +10,6 @@ const UserProfile = ({ username }) => {
   const [message, setMessage] = useState(null);
   const fileInputRef = useRef(null);
 
-  // Fetch user profile on component mount
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     if (!token || !username) return;
@@ -37,7 +36,6 @@ const UserProfile = ({ username }) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Validate file is an image
     if (!file.type.startsWith('image/')) {
       setMessage({ type: "error", text: "Please select an image file" });
       return;
@@ -68,7 +66,6 @@ const UserProfile = ({ username }) => {
         setProfilePicture(`${API_URL}${data.url}?t=${Date.now()}`);
         setMessage({ type: "success", text: "Profile picture updated successfully" });
         
-        // Clear the profile cache in ProfilePicture component to force a refresh
         window.dispatchEvent(new CustomEvent('profilePictureUpdated', { 
           detail: { username, timestamp: Date.now() } 
         }));

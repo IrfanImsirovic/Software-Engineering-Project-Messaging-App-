@@ -13,7 +13,7 @@ export default function Register() {
 
   const [errorMessage, setErrorMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const navigate = useNavigate(); // Hook for redirection
+  const navigate = useNavigate(); 
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -37,8 +37,7 @@ export default function Register() {
         throw new Error(data.error || "Registration failed");
       }
 
-      console.log("✅ Registration successful:", data);
-      navigate("/login"); // Redirect after successful registration
+      navigate("/login"); 
 
     } catch (error) {
       console.error("❌ Registration error:", error);

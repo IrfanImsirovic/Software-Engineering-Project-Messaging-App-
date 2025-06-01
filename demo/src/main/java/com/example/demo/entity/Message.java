@@ -14,7 +14,6 @@ public class Message {
     private String sender;
     private String receiver;
 
-    // allow arbitrarily large Base64-ciphertext
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 

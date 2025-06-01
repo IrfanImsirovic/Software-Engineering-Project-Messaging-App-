@@ -5,7 +5,6 @@ public class MessageDTO {
     private String content;
     private String imageUrl;
 
-    // Getters and setters
     public String getReceiver() {
         return receiver;
     }

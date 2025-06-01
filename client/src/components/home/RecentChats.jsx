@@ -371,7 +371,7 @@ export default function RecentChats({ username ,onSelectFriend}) {
                     checked={selectedFriends.includes(friend)}
                     onChange={() => toggleFriendSelection(friend)}
                   />
-                  {friend}
+                  <span className="username">{friend}</span>
                 </label>
               ))}
             </div>

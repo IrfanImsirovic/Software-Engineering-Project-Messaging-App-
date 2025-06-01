@@ -248,7 +248,6 @@ public class MessageController {
                 return tB.compareTo(tA);
             });
 
-            System.out.println("Successfully processed recent chats");
             return ResponseEntity.ok(combinedResults);
         } catch (Exception e) {
             e.printStackTrace();

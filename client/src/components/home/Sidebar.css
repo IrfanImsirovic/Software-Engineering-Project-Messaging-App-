@@ -348,10 +348,9 @@
 .logout-button img {
   width: 20px;
   height: 20px;
-  filter: brightness(0) invert(1); /* Makes icons white */
+  filter: brightness(0) invert(1); 
 }
 
-/* Profile Modal Styles */
 .profile-modal-overlay {
   position: fixed;
   top: 0;
