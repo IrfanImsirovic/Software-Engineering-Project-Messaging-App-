@@ -13,18 +13,18 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.lang.NonNull;
-
-
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 import java.io.IOException;
 import java.util.Collections;
-import org.springframework.context.annotation.Lazy;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final UserService userService;
 
+    @Autowired
     public JwtAuthFilter(@Lazy UserService userService) {
         this.userService = userService;
     }
@@ -50,8 +50,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     .getBody();
 
             String username = claims.getSubject();
-            System.out.println("🔐 Authenticated user from token: " + username);
-
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(username, null, Collections.emptyList());

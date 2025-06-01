@@ -177,9 +177,13 @@ export default function ChatPage({ username, chat }) {
           imageUrl: imageUrl
         };
 
+    const token = localStorage.getItem("authToken");
     client.publish({
       destination: isGroup ? "/app/group" : "/app/chat",
       body: JSON.stringify(messagePayload),
+      headers: { 
+        'Authorization': 'Bearer ' + token.trim() 
+      }
     });
 
     setInput("");
@@ -206,9 +210,13 @@ export default function ChatPage({ username, chat }) {
           timestamp: now,
         };
 
+    const token = localStorage.getItem("authToken");
     client.publish({
       destination: isGroup ? "/app/group" : "/app/chat",
       body: JSON.stringify(messagePayload),
+      headers: { 
+        'Authorization': 'Bearer ' + token.trim() 
+      }
     });
 
     // Don't add message locally - let the WebSocket handle it

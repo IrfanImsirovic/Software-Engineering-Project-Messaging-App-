@@ -38,29 +38,36 @@ public class GroupMessageController {
         boolean isMember = group.getMembers().stream()
                 .anyMatch(u -> u.getUsername().equals(principal.getName()));
         if (!isMember) {
-            System.out.println("❌ Not a member of this group.");
             return;
         }
 
-        // Encrypt the message content
-        String encrypted = SimpleXorUtil.encrypt(dto.getContent());
+        String originalContent = dto.getContent();
+        
+        String encrypted = "";
+        if (originalContent != null && !originalContent.isEmpty()) {
+            encrypted = SimpleXorUtil.encrypt(originalContent);
+        }
 
         GroupMessage message = new GroupMessage();
         message.setSender(principal.getName());
-        message.setContent(encrypted);
+        message.setContent(encrypted); 
         message.setTimestamp(LocalDateTime.now());
         message.setGroup(group);
         message.setImageUrl(dto.getImageUrl());
 
-        groupMessageRepository.save(message);
+        GroupMessage savedMessage = groupMessageRepository.save(message);
 
-        // Decrypt before broadcasting to clients
-        message.setContent(SimpleXorUtil.decrypt(encrypted));
-        messagingTemplate.convertAndSend("/topic/group/" + dto.getGroupId(), message);
-        System.out.println("✅ Group message sent: " + message.getContent());
+        GroupMessage clientMsg = new GroupMessage();
+        clientMsg.setId(savedMessage.getId());
+        clientMsg.setSender(principal.getName());
+        clientMsg.setContent(originalContent); 
+        clientMsg.setTimestamp(savedMessage.getTimestamp());
+        clientMsg.setGroup(group);
+        clientMsg.setImageUrl(dto.getImageUrl());
+
+        messagingTemplate.convertAndSend("/topic/group/" + dto.getGroupId(), clientMsg);
     }
 
-    // ✅ REST endpoint to load group message history
     @GetMapping("/history")
     public List<GroupMessage> getGroupChatHistory(@RequestParam Long groupId, Principal principal) {
         ChatGroup group = chatGroupRepository.findByIdWithMembers(groupId)
@@ -72,11 +79,21 @@ public class GroupMessageController {
             throw new RuntimeException("You are not a member of this group");
         }
 
-        // Fetch and decrypt history
-        return groupMessageRepository
-                .findByGroupIdOrderByTimestampAsc(groupId)
-                .stream()
-                .peek(gm -> gm.setContent(SimpleXorUtil.decrypt(gm.getContent())))
-                .collect(Collectors.toList());
+        List<GroupMessage> messages = groupMessageRepository.findByGroupIdOrderByTimestampAsc(groupId);
+        
+        for (GroupMessage gm : messages) {
+            try {
+                if (gm.getContent() != null && !gm.getContent().isEmpty()) {
+                    String decrypted = SimpleXorUtil.decrypt(gm.getContent());
+                    gm.setContent(decrypted);
+                } else {
+                    gm.setContent("");
+                }
+            } catch (Exception e) {
+                System.err.println("Error decrypting group message ID " + gm.getId() + ": " + e.getMessage());
+            }
+        }
+        
+        return messages;
     }
 }

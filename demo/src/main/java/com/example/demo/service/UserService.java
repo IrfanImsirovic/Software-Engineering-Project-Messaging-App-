@@ -27,19 +27,23 @@ import com.example.demo.dto.RegisterRequest;
 @Service
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private FriendRequestRepository friendRequestRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final FriendRequestRepository friendRequestRepository;
 
     @Value("${jwt.secret}")
     private String jwtSecret;
 
     private SecretKey secretKey;
+
+    @Autowired
+    public UserService(UserRepository userRepository, 
+                      PasswordEncoder passwordEncoder, 
+                      FriendRequestRepository friendRequestRepository) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.friendRequestRepository = friendRequestRepository;
+    }
 
     @PostConstruct
     private void initSecretKey() {
@@ -49,6 +53,7 @@ public class UserService {
     public SecretKey getSecretKey() {
         return secretKey;
     }
+
     public User registerUser(RegisterRequest registerRequest) {
         System.out.println("📝 Attempting to register user: " + registerRequest.getUsername());
     
