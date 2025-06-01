@@ -93,7 +93,7 @@ public class MessageController {
                         currentUsername, friendUsername
                 );
 
-y        List<Map<String, Object>> result = new ArrayList<>();
+        List<Map<String, Object>> result = new ArrayList<>();
         for (Message entity : history) {
             Map<String, Object> messageDto = new HashMap<>();
             messageDto.put("id", entity.getId());
