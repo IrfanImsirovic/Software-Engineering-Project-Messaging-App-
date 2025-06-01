@@ -24,12 +24,10 @@ export default function ChatPage({ username, chat }) {
   const isGroup = chat?.isGroup === true;
   const chatTitle = isGroup ? chat.name : (chat.username || chat);
 
-  // Auto-scroll
   useEffect(() => {
     chatBoxRef.current?.scrollTo(0, chatBoxRef.current.scrollHeight);
   }, [messages]);
 
-  // Load history
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     const url = isGroup
@@ -44,7 +42,6 @@ export default function ChatPage({ username, chat }) {
       .catch(console.error);
   }, [chat, username]);
 
-  // WebSocket connection
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     const client = new Client({
@@ -63,14 +60,13 @@ export default function ChatPage({ username, chat }) {
             console.log("📨 Received group message:", receivedMsg);
             console.log("📨 Image URL in message:", receivedMsg.imageUrl);
             
-            // Map the received message to the format expected by the UI
             const formattedMsg = {
               groupId: chat.id,
               sender: receivedMsg.sender,
               content: receivedMsg.content,
               timestamp: receivedMsg.timestamp,
               imageUrl: receivedMsg.imageUrl,
-              id: receivedMsg.id // Make sure we have an ID for image loading state
+              id: receivedMsg.id
             };
             
             setMessages((prev) => [...prev, formattedMsg]);
@@ -81,18 +77,15 @@ export default function ChatPage({ username, chat }) {
 
           client.subscribe(topic, (message) => {
             const msg = JSON.parse(message.body);
-            console.log("📨 Received message:", msg);
-            console.log("📨 Image URL in direct message:", msg.imageUrl);
-            
             setMessages((prev) => [...prev, msg]);
           });
         }
       },
       onStompError: (frame) => {
-        console.error("❌ Broker error:", frame.headers["message"]);
+        console.error("Broker error:", frame.headers["message"]);
       },
       onDisconnect: () => {
-        console.log("🔌 Disconnected");
+        console.log("Disconnected");
         setConnected(false);
       },
     });
@@ -105,12 +98,10 @@ export default function ChatPage({ username, chat }) {
     };
   }, [username, chat]);
 
-  // Handle image upload
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Validate file is an image
     if (!file.type.startsWith('image/')) {
       alert('Please select an image file');
       return;
@@ -136,7 +127,6 @@ export default function ChatPage({ username, chat }) {
         return response.json();
       })
       .then(data => {
-        // Send message with image
         console.log("📸 Upload response:", data);
         sendMessageWithImage(data.url);
       })
@@ -146,20 +136,18 @@ export default function ChatPage({ username, chat }) {
       })
       .finally(() => {
         setUploading(false);
-        // Clear the file input
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
         }
       });
   };
 
-  // Send message with image
   const sendMessageWithImage = (imageUrl) => {
     const client = clientRef.current;
     if (!connected || !client?.connected) return;
 
     const now = new Date().toISOString();
-    const content = input.trim() || ""; // Allow empty content for image-only messages
+    const content = input.trim() || ""; 
 
     const messagePayload = isGroup
       ? {
@@ -177,15 +165,18 @@ export default function ChatPage({ username, chat }) {
           imageUrl: imageUrl
         };
 
+    const token = localStorage.getItem("authToken");
     client.publish({
       destination: isGroup ? "/app/group" : "/app/chat",
       body: JSON.stringify(messagePayload),
+      headers: { 
+        'Authorization': 'Bearer ' + token.trim() 
+      }
     });
 
     setInput("");
   };
 
-  // Send text message
   const sendMessage = () => {
     const client = clientRef.current;
     if (!input.trim() || !connected || !client?.connected) return;
@@ -206,13 +197,15 @@ export default function ChatPage({ username, chat }) {
           timestamp: now,
         };
 
+    const token = localStorage.getItem("authToken");
     client.publish({
       destination: isGroup ? "/app/group" : "/app/chat",
       body: JSON.stringify(messagePayload),
+      headers: { 
+        'Authorization': 'Bearer ' + token.trim() 
+      }
     });
 
-    // Don't add message locally - let the WebSocket handle it
-    // The message will be received back through the subscription
     setInput("");
   };
 
@@ -224,12 +217,10 @@ export default function ChatPage({ username, chat }) {
   const isFirstInSequence = (index) =>
     index === 0 || messages[index].sender !== messages[index - 1].sender;
 
-  // Open image in modal
   const openImageModal = (imageUrl) => {
     setModalImage(imageUrl);
   };
 
-  // Close image modal
   const closeImageModal = () => {
     setModalImage(null);
   };
@@ -254,7 +245,6 @@ export default function ChatPage({ username, chat }) {
           const first = isFirstInSequence(idx);
           const hasImage = msg.imageUrl && msg.imageUrl.trim() !== '';
 
-          // Handle system messages differently
           if (isSystem) {
             return (
               <div key={idx} className="system-wrapper">
@@ -311,7 +301,6 @@ export default function ChatPage({ username, chat }) {
         })}
       </div>
 
-      {/* Image Modal */}
       {modalImage && (
         <div className="image-modal-overlay" onClick={closeImageModal}>
           <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
@@ -332,7 +321,6 @@ export default function ChatPage({ username, chat }) {
             disabled={!connected || uploading}
           />
           
-          {/* Hidden file input */}
           <input
             type="file"
             ref={fileInputRef}
@@ -342,7 +330,6 @@ export default function ChatPage({ username, chat }) {
             disabled={!connected || uploading}
           />
           
-          {/* Gallery button */}
           <button 
             onClick={() => fileInputRef.current && fileInputRef.current.click()} 
             disabled={!connected || uploading}
@@ -351,7 +338,6 @@ export default function ChatPage({ username, chat }) {
             <img src={galleryIcon} alt="Gallery" />
           </button>
           
-          {/* Send button */}
           <button 
             onClick={sendMessage} 
             disabled={!connected || uploading || !input.trim()}

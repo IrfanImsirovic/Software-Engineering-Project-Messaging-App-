@@ -1,27 +1,27 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.MessageDTO;
-import com.example.demo.entity.Message;
-import com.example.demo.entity.User;
 import com.example.demo.entity.ChatGroup;
 import com.example.demo.entity.GroupMessage;
+import com.example.demo.entity.Message;
+import com.example.demo.entity.User;
 import com.example.demo.repository.MessageRepository;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.util.SimpleXorUtil;
+import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.web.bind.annotation.*; // ← added
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.sql.Timestamp;
 
 @Transactional
-@RestController // ← change from @Controller to @RestController
+@RestController
 @RequestMapping("/api/messages")
 public class MessageController {
 
@@ -29,7 +29,6 @@ public class MessageController {
     private final MessageRepository messageRepository;
     private final UserRepository userRepository;
     private final JdbcTemplate jdbcTemplate;
-
 
     public MessageController(SimpMessagingTemplate messagingTemplate,
                              MessageRepository messageRepository,
@@ -44,11 +43,11 @@ public class MessageController {
     @MessageMapping("/chat")
     public void sendMessage(@Payload MessageDTO messageDTO, Principal principal) {
         if (principal == null) {
-            System.out.println("❌ No user principal in WebSocket session");
             return;
         }
 
         String senderUsername = principal.getName();
+        
         User sender = userRepository.findByUsername(senderUsername).orElse(null);
         User receiver = userRepository.findByUsername(messageDTO.getReceiver()).orElse(null);
 
@@ -56,156 +55,248 @@ public class MessageController {
 
         boolean areFriends = sender.getFriends().stream()
                 .anyMatch(friend -> friend.getUsername().equals(receiver.getUsername()));
-
         if (!areFriends) return;
+
+        String originalContent = messageDTO.getContent();
+        
+        String encrypted = "";
+        if (originalContent != null && !originalContent.isEmpty()) {
+            encrypted = SimpleXorUtil.encrypt(originalContent);
+        }
 
         Message msg = new Message();
         msg.setSender(senderUsername);
         msg.setReceiver(receiver.getUsername());
-        msg.setContent(messageDTO.getContent());
+        msg.setContent(encrypted);
         msg.setTimestamp(LocalDateTime.now());
         msg.setImageUrl(messageDTO.getImageUrl());
 
-        messageRepository.save(msg);
-        messagingTemplate.convertAndSend("/topic/messages/" + receiver.getUsername(), msg);
-        messagingTemplate.convertAndSend("/topic/messages/" + senderUsername, msg);
+        Message savedMsg = messageRepository.save(msg);
 
+        Message clientMsg = new Message();
+        clientMsg.setSender(senderUsername);
+        clientMsg.setReceiver(receiver.getUsername());
+        clientMsg.setContent(originalContent);
+        clientMsg.setTimestamp(savedMsg.getTimestamp());
+        clientMsg.setImageUrl(messageDTO.getImageUrl());
+
+        messagingTemplate.convertAndSend("/topic/messages/" + receiver.getUsername(), clientMsg);
+        messagingTemplate.convertAndSend("/topic/messages/" + senderUsername, clientMsg);
     }
 
-    // ✅ REST endpoint for chat history
     @GetMapping("/history")
-    public List<Message> getChatHistory(@RequestParam String friendUsername, Principal principal) {
+    public List<Map<String, Object>> getChatHistory(@RequestParam String friendUsername, Principal principal) {
         String currentUsername = principal.getName();
-        return messageRepository.findBySenderAndReceiverOrReceiverAndSenderOrderByTimestampAsc(
-                currentUsername, friendUsername,
-                currentUsername, friendUsername
-        );
+        List<Message> history = messageRepository
+                .findBySenderAndReceiverOrReceiverAndSenderOrderByTimestampAsc(
+                        currentUsername, friendUsername,
+                        currentUsername, friendUsername
+                );
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Message entity : history) {
+            Map<String, Object> messageDto = new HashMap<>();
+            messageDto.put("id", entity.getId());
+            messageDto.put("sender", entity.getSender());
+            messageDto.put("receiver", entity.getReceiver());
+            messageDto.put("timestamp", entity.getTimestamp());
+            messageDto.put("imageUrl", entity.getImageUrl());
+            
+            try {
+                if (entity.getContent() != null && !entity.getContent().isEmpty()) {
+                    String decrypted = SimpleXorUtil.decrypt(entity.getContent());
+                    messageDto.put("content", decrypted);
+                } else {
+                    messageDto.put("content", "");
+                }
+            } catch (Exception e) {
+                System.err.println("Error decrypting message ID " + entity.getId() + ": " + e.getMessage());
+                messageDto.put("content", entity.getContent());
+            }
+            
+            result.add(messageDto);
+        }
+        return result;
     }
 
-    // REST endpoint for recent chats
     @GetMapping("/recent")
     public ResponseEntity<?> getRecentChats(Principal principal) {
         try {
             String currentUsername = principal.getName();
             List<Object> combinedResults = new ArrayList<>();
-            
-            // 1. Get direct messages
+
             List<Message> directMessages = messageRepository.findBySenderOrReceiverOrderByTimestampDesc(
                     currentUsername, currentUsername);
-            
-            // Process the messages to get only the most recent one for each conversation
-            Map<String, Message> latestMessagesByContact = new HashMap<>();
-            
+
+            Map<String, Message> latestByContact = new HashMap<>();
             for (Message message : directMessages) {
-                String chatPartner;
-                if (message.getSender().equals(currentUsername)) {
-                    chatPartner = message.getReceiver();
-                } else {
-                    chatPartner = message.getSender();
-                }
-                
-                // Only keep the latest message for each contact
-                if (!latestMessagesByContact.containsKey(chatPartner) || 
-                    message.getTimestamp().isAfter(latestMessagesByContact.get(chatPartner).getTimestamp())) {
-                    latestMessagesByContact.put(chatPartner, message);
+                String chatPartner = message.getSender().equals(currentUsername)
+                        ? message.getReceiver()
+                        : message.getSender();
+
+                if (!latestByContact.containsKey(chatPartner)
+                        || message.getTimestamp().isAfter(latestByContact.get(chatPartner).getTimestamp())) {
+                    latestByContact.put(chatPartner, message);
                 }
             }
-            
-            // Add direct messages to combined results
-            combinedResults.addAll(latestMessagesByContact.values());
-            
-            // 2. Get all groups the user is a member of - simplified approach
-            User currentUser = userRepository.findByUsername(currentUsername)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            for (Message entity : latestByContact.values()) {
+                try {
+                    Map<String, Object> messageDto = new HashMap<>();
+                    messageDto.put("id", entity.getId());
+                    messageDto.put("sender", entity.getSender());
+                    messageDto.put("receiver", entity.getReceiver());
+                    messageDto.put("timestamp", entity.getTimestamp());
+                    messageDto.put("imageUrl", entity.getImageUrl());
                     
+                    if (entity.getContent() != null && !entity.getContent().isEmpty()) {
+                        String decrypted = SimpleXorUtil.decrypt(entity.getContent());
+                        messageDto.put("content", decrypted);
+                    } else {
+                        messageDto.put("content", "");
+                    }
+                    
+                    combinedResults.add(messageDto);
+                } catch (Exception e) {
+                    System.err.println("Decryption failed for message ID " + entity.getId() + ": " + e.getMessage());
+                    
+                    Map<String, Object> messageDto = new HashMap<>();
+                    messageDto.put("id", entity.getId());
+                    messageDto.put("sender", entity.getSender());
+                    messageDto.put("receiver", entity.getReceiver());
+                    messageDto.put("timestamp", entity.getTimestamp());
+                    messageDto.put("imageUrl", entity.getImageUrl());
+                    messageDto.put("content", "[Message could not be decrypted]");
+                    
+                    combinedResults.add(messageDto);
+                }
+            }
+
             List<ChatGroup> userGroups = jdbcTemplate.query(
-                "SELECT g.* FROM chat_groups g " +
-                "JOIN group_members gm ON g.id = gm.group_id " +
-                "JOIN users u ON gm.user_id = u.id " +
-                "WHERE u.username = ?",
-                (rs, rowNum) -> {
-                    ChatGroup group = new ChatGroup();
-                    group.setId(rs.getLong("id"));
-                    group.setName(rs.getString("name"));
-                    return group;
-                },
-                currentUsername
+                    "SELECT g.* FROM chat_groups g " +
+                            "JOIN group_members gm ON g.id = gm.group_id " +
+                            "JOIN users u ON gm.user_id = u.id " +
+                            "WHERE u.username = ?",
+                    (rs, rowNum) -> {
+                        ChatGroup group = new ChatGroup();
+                        group.setId(rs.getLong("id"));
+                        group.setName(rs.getString("name"));
+                        return group;
+                    },
+                    currentUsername
             );
-            
-            // 3. For each group, find the latest message or create a placeholder
+
             for (ChatGroup group : userGroups) {
                 Map<String, Object> groupEntry = new HashMap<>();
                 groupEntry.put("id", group.getId());
                 groupEntry.put("name", group.getName());
                 groupEntry.put("isGroup", true);
-                
-                // Try to find the latest message for this group
+
                 List<GroupMessage> groupMessages = jdbcTemplate.query(
-                    "SELECT * FROM group_messages " +
-                    "WHERE group_id = ? " +
-                    "ORDER BY timestamp DESC LIMIT 1",
-                    (rs, rowNum) -> {
-                        GroupMessage msg = new GroupMessage();
-                        msg.setId(rs.getLong("id"));
-                        msg.setSender(rs.getString("sender"));
-                        msg.setContent(rs.getString("content"));
-                        msg.setTimestamp(rs.getTimestamp("timestamp").toLocalDateTime());
-                        return msg;
-                    },
-                    group.getId()
+                        "SELECT * FROM group_messages WHERE group_id = ? ORDER BY timestamp DESC LIMIT 1",
+                        (rs, rowNum) -> {
+                            GroupMessage gm = new GroupMessage();
+                            gm.setId(rs.getLong("id"));
+                            gm.setSender(rs.getString("sender"));
+                            
+                            String content = rs.getString("content");
+                            System.out.println("📝 Raw group message content: '" + content + "'");
+                            gm.setContent(content);
+                            
+                            java.sql.Timestamp timestamp = rs.getTimestamp("timestamp");
+                            if (timestamp != null) {
+                                gm.setTimestamp(timestamp.toLocalDateTime());
+                            } else {
+                                gm.setTimestamp(LocalDateTime.now());
+                            }
+                            
+                            return gm;
+                        },
+                        group.getId()
                 );
-                
+
                 if (!groupMessages.isEmpty()) {
-                    // Found a message, use it
-                    GroupMessage latestMessage = groupMessages.get(0);
-                    groupEntry.put("sender", latestMessage.getSender());
-                    groupEntry.put("content", latestMessage.getContent());
-                    groupEntry.put("timestamp", latestMessage.getTimestamp());
+                    GroupMessage latest = groupMessages.get(0);
+                    String plain = "No message content";
+                    try {
+                        if (latest.getContent() != null && !latest.getContent().isEmpty()) {
+                            plain = SimpleXorUtil.decrypt(latest.getContent());
+                        }
+                    } catch (Exception e) {
+                        plain = "[Message could not be decrypted]";
+                        System.err.println("Error decrypting group message: " + e.getMessage());
+                    }
+                    
+                    groupEntry.put("sender", latest.getSender());
+                    groupEntry.put("content", plain);
+                    groupEntry.put("timestamp", latest.getTimestamp());
                 } else {
-                    // No message found, use placeholder
                     groupEntry.put("sender", "SYSTEM");
                     groupEntry.put("content", "New group created");
                     groupEntry.put("timestamp", LocalDateTime.now());
                 }
-                
+
                 combinedResults.add(groupEntry);
             }
-            
-            // 4. Sort all entries by timestamp (most recent first)
+
             combinedResults.sort((a, b) -> {
-                LocalDateTime timeA = null;
-                LocalDateTime timeB = null;
-                
-                if (a instanceof Message) {
-                    timeA = ((Message) a).getTimestamp();
-                } else {
-                    Object timestampA = ((Map<String, Object>) a).get("timestamp");
-                    if (timestampA instanceof LocalDateTime) {
-                        timeA = (LocalDateTime) timestampA;
-                    }
-                }
-                
-                if (b instanceof Message) {
-                    timeB = ((Message) b).getTimestamp();
-                } else {
-                    Object timestampB = ((Map<String, Object>) b).get("timestamp");
-                    if (timestampB instanceof LocalDateTime) {
-                        timeB = (LocalDateTime) timestampB;
-                    }
-                }
-                
-                // If either timestamp is null, handle accordingly
-                if (timeA == null && timeB == null) return 0;
-                if (timeA == null) return 1; // Null timestamps go last
-                if (timeB == null) return -1;
-                
-                return timeB.compareTo(timeA);
+                LocalDateTime tA = extractTimestamp(a);
+                LocalDateTime tB = extractTimestamp(b);
+                if (tA == null && tB == null) return 0;
+                if (tA == null) return 1;
+                if (tB == null) return -1;
+                return tB.compareTo(tA);
             });
-            
+
             return ResponseEntity.ok(combinedResults);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body("Error fetching recent chats: " + e.getMessage());
+        }
+    }
+
+    private LocalDateTime extractTimestamp(Object obj) {
+        if (obj instanceof Message) {
+            return ((Message) obj).getTimestamp();
+        } else if (obj instanceof Map) {
+            Object ts = ((Map<?, ?>) obj).get("timestamp");
+            if (ts instanceof LocalDateTime) {
+                return (LocalDateTime) ts;
+            }
+        }
+        return null;
+    }
+
+    @GetMapping("/test-encryption")
+    public ResponseEntity<?> testEncryption(Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(401).body("Not authenticated");
+        }
+        
+        String testContent = "This is a test encryption message";        
+        String encrypted = SimpleXorUtil.encrypt(testContent);
+        
+        Message testMsg = new Message();
+        testMsg.setSender(principal.getName());
+        testMsg.setReceiver("test-receiver");
+        testMsg.setContent(encrypted);
+        testMsg.setTimestamp(LocalDateTime.now());
+        
+        Message savedMsg = messageRepository.save(testMsg);
+        
+        Message retrievedMsg = messageRepository.findById(savedMsg.getId()).orElse(null);
+        if (retrievedMsg != null) {
+            String decrypted = SimpleXorUtil.decrypt(retrievedMsg.getContent());
+            
+            Map<String, Object> result = new HashMap<>();
+            result.put("original", testContent);
+            result.put("encrypted", encrypted);
+            result.put("storedInDb", retrievedMsg.getContent());
+            result.put("decrypted", decrypted);
+            result.put("messageId", retrievedMsg.getId());
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.status(500).body("Failed to retrieve message");
         }
     }
 }

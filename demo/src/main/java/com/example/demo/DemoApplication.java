@@ -12,7 +12,7 @@ public class DemoApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(DemoApplication.class, args);
-        System.out.println("🚀 Spring Boot Application Started Successfully! 🚀");
+        System.out.println("Spring Boot Application Started Successfully!");
     }
 
     @Bean
@@ -21,10 +21,10 @@ public class DemoApplication {
             @Override
             public void addCorsMappings(@NonNull CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:5173") // Allow React frontend
+                        .allowedOrigins("http://localhost:5173") 
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
-                        .allowCredentials(true); // Allow cookies and credentials
+                        .allowCredentials(true); 
             }
         };
     }

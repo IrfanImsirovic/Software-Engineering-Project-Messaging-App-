@@ -40,7 +40,6 @@ public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel c
         if (authHeaders != null && !authHeaders.isEmpty()) {
             String token = authHeaders.get(0).replace("Bearer ", "").trim();
             try {
-                System.out.println("🔐 WebSocket token received: " + token);
 
                 Claims claims = Jwts.parserBuilder()
                         .setSigningKey(userService.getSecretKey())
@@ -49,7 +48,6 @@ public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel c
                         .getBody();
 
                 String username = claims.getSubject();
-                System.out.println("✅ Token validated for user: " + username);
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
@@ -61,11 +59,9 @@ public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel c
                 accessor.setUser(authentication);
 
             } catch (Exception e) {
-                System.out.println("❌ Invalid token in WebSocket: " + e.getMessage());
                 throw new IllegalArgumentException("Invalid token");
             }
         } else {
-            System.out.println("⚠️ No Authorization header in STOMP CONNECT/SEND frame");
         }
     }
 

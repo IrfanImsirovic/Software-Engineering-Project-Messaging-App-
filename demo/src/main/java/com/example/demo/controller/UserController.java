@@ -56,19 +56,16 @@ public class UserController {
         }
 
         try {
-            // Check if the file is an image
             String contentType = file.getContentType();
             if (contentType == null || !contentType.startsWith("image/")) {
                 return ResponseEntity.badRequest().body("Only image files are allowed");
             }
 
-            // Create the upload directory if it doesn't exist
             File directory = new File(uploadDir + "/profiles");
             if (!directory.exists()) {
                 directory.mkdirs();
             }
 
-            // Generate a unique filename
             String originalFilename = file.getOriginalFilename();
             String fileExtension = "";
             
@@ -78,11 +75,9 @@ public class UserController {
             
             String newFilename = UUID.randomUUID().toString() + fileExtension;
             
-            // Save the file
             Path targetLocation = Paths.get(uploadDir + "/profiles").resolve(newFilename);
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
-            // Update user profile picture URL in database
             User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("User not found"));
             

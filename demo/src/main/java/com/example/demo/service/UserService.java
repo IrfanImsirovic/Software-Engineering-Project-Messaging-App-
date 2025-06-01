@@ -27,19 +27,23 @@ import com.example.demo.dto.RegisterRequest;
 @Service
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private FriendRequestRepository friendRequestRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final FriendRequestRepository friendRequestRepository;
 
     @Value("${jwt.secret}")
     private String jwtSecret;
 
     private SecretKey secretKey;
+
+    @Autowired
+    public UserService(UserRepository userRepository, 
+                      PasswordEncoder passwordEncoder, 
+                      FriendRequestRepository friendRequestRepository) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.friendRequestRepository = friendRequestRepository;
+    }
 
     @PostConstruct
     private void initSecretKey() {
@@ -49,60 +53,46 @@ public class UserService {
     public SecretKey getSecretKey() {
         return secretKey;
     }
+
     public User registerUser(RegisterRequest registerRequest) {
-        System.out.println("📝 Attempting to register user: " + registerRequest.getUsername());
     
-        // Check if username exists
         if (userRepository.findByUsername(registerRequest.getUsername()).isPresent()) {
-            System.out.println("❌ Username already exists: " + registerRequest.getUsername());
             throw new RuntimeException("Username already exists");
         }
     
-        // Check if email exists
         if (userRepository.findByEmail(registerRequest.getEmail()).isPresent()) {
-            System.out.println("❌ Email already exists: " + registerRequest.getEmail());
             throw new RuntimeException("Email already exists");
         }
     
-        // Create a new User entity from the DTO
         User user = new User();
         user.setUsername(registerRequest.getUsername());
         user.setEmail(registerRequest.getEmail());
         
-        // Hash password
-        System.out.println("🔑 Hashing password...");
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
     
-        // Save user
         User savedUser = userRepository.save(user);
-        System.out.println("✅ User successfully registered: " + savedUser.getId());
     
         return savedUser;
     }
 
     public LoginResponse loginUser(LoginRequest loginRequest) {
-        System.out.println("🔍 Checking user: " + loginRequest.getUsername());
     
         Optional<User> userOptional = userRepository.findByUsername(loginRequest.getUsername());
         if (userOptional.isEmpty()) {
-            System.out.println("❌ User not found in database");
             throw new RuntimeException("User not found");
         }
     
         User user = userOptional.get();
-        System.out.println("✅ User found: " + user.getUsername());
     
         if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
-            System.out.println("❌ Incorrect password");
             throw new RuntimeException("Invalid password");
         }
     
-        System.out.println("✅ Password matches. Generating token...");
         String token = Jwts.builder()
                 .setSubject(user.getUsername())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 1 day
-                .signWith(secretKey, SignatureAlgorithm.HS256) // ✅ not deprecated
+                .setExpiration(new Date(System.currentTimeMillis() + 86400000)) 
+                .signWith(secretKey, SignatureAlgorithm.HS256) 
                 .compact();
     
         return new LoginResponse(token);

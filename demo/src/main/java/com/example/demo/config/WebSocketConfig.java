@@ -27,7 +27,7 @@ public void configureClientInboundChannel(@NonNull ChannelRegistration registrat
 }
     @Override
 public void registerStompEndpoints(@NonNull StompEndpointRegistry registry) {
-    registry.addEndpoint("/ws") // ✅ Native WebSocket only
+    registry.addEndpoint("/ws")
             .setAllowedOriginPatterns("*");
 }
 

@@ -28,7 +28,6 @@ export default function Sidebar({ username, onSelectFriend }) {
     "Authorization": "Bearer " + localStorage.getItem("authToken")
   };
 
-  // Fetch friends list
   useEffect(() => {
     if (!username) return;
     fetch(`${API_URL}/api/friends/list?username=${username}`, {
@@ -39,7 +38,6 @@ export default function Sidebar({ username, onSelectFriend }) {
       .catch(() => setFriends([]));
   }, [username]);
 
-  // Fetch pending requests
   useEffect(() => {
     if (activeTab !== "requests" || !username) return;
     fetch(`${API_URL}/api/friends/pending?username=${username}`, {
@@ -50,7 +48,6 @@ export default function Sidebar({ username, onSelectFriend }) {
       .catch(() => setPendingRequests([]));
   }, [activeTab, username]);
 
-  // Message timeout effect
   useEffect(() => {
     let timeout;
     if (message || errorMessage) {
@@ -178,7 +175,7 @@ export default function Sidebar({ username, onSelectFriend }) {
                   <button 
                     className="icon-button" 
                     onClick={(e) => {
-                      e.stopPropagation(); // Prevent triggering the parent click
+                      e.stopPropagation(); 
                       handleRemoveFriend(friend);
                     }} 
                     title="Remove Friend"

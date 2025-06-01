@@ -23,7 +23,7 @@ export default function Login() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          username: credentials.username, // ✅ Now correctly sending username
+          username: credentials.username, 
           password: credentials.password
         }),
         credentials: "include"
@@ -36,13 +36,12 @@ export default function Login() {
         throw new Error(data.error || "Login failed");
       }
 
-      console.log("🔑 Auth Token:", data.token);
       localStorage.setItem("authToken", data.token);
       localStorage.setItem("username", credentials.username);
       navigate("/home");
 
     } catch (error) {
-      console.error("❌ Login error:", error);
+      console.error("Login error:", error);
       setErrorMessage(error.message);
     }
   };

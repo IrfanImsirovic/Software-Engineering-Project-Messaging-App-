@@ -2,8 +2,8 @@
     width: 1000px;
     margin-left: -250px;
     padding: 0;
-    padding-top: 70px; /* Add space for fixed header */
-    padding-bottom: 80px; /* Add space for fixed footer */
+    padding-top: 70px; 
+    padding-bottom: 80px; 
     font-family: sans-serif;
     margin-bottom: 0;
     display: flex;
@@ -25,8 +25,8 @@
     z-index: 10;
     position: fixed;
     top: 0;
-    left: 252px; /* Match the margin of the footer */
-    width: 67.3%; /* Match the width of the footer */
+    left: 252px; 
+    width: 67.3%; 
     box-sizing: border-box;
 }
 
@@ -75,12 +75,10 @@
     background-color: #fff;
     border-radius: 8px 8px 0 0;
     z-index: 1;
-    /* Hide scrollbar while maintaining scrollability */
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; 
+    -ms-overflow-style: none;
 }
 
-/* Hide scrollbar for Chrome, Safari and Opera */
 .chat-box::-webkit-scrollbar {
     display: none;
 }
@@ -88,7 +86,7 @@
 .message-wrapper {
     display: flex;
     width: 100%;
-    align-items: flex-start; /* Ensure consistent vertical alignment */
+    align-items: flex-start; 
 }
 
 .sent-wrapper {
@@ -99,7 +97,6 @@
     justify-content: flex-start;
 }
 
-/* Avatar spacer for sequential messages */
 .avatar-spacer {
     width: 32px;
     margin-right: 8px;
@@ -118,7 +115,7 @@
     justify-content: center;
     align-self: flex-start;
     flex-shrink: 0;
-    margin-top: 4px; /* Add consistent top margin to align with messages */
+    margin-top: 4px; 
 }
 
 .sender-avatar img {
@@ -141,7 +138,6 @@
     align-items: flex-start;
 }
 
-/* Add specific alignment for the message sender/username inside the message bubble */
 .message-bubble {
     padding: 8px 12px;
     border-radius: 16px;
@@ -154,13 +150,12 @@
     width: fit-content;
 }
 
-/* Special styling for image-only messages */
 .message-bubble.image-only {
     padding: 0;
     background-color: transparent !important;
     border-radius: 0;
     box-shadow: none;
-    margin-top: 0; /* Remove any top margin */
+    margin-top: 0; 
 }
 
 .message-bubble.image-only .message-image-container {
@@ -206,9 +201,9 @@
     word-wrap: break-word;
     overflow-wrap: break-word;
     max-width: 100%;
-    padding-right: 40px; /* Make space for the timestamp */
-    min-height: 20px; /* Ensure there's enough space for the timestamp */
-    margin-bottom: 5px; /* Add margin when followed by an image */
+    padding-right: 40px; 
+    min-height: 20px; 
+    margin-bottom: 5px; 
 }
 
 .message-bubble.sent {
@@ -217,7 +212,7 @@
 }
 
 .message-bubble.received {
-    background-color: #001f3f; /* Navy blue */
+    background-color: #001f3f; 
     border-top-left-radius: 4px;
 }
 
@@ -246,7 +241,7 @@
     font-size: 9px;
     color: rgba(255, 255, 255, 0.7);
     padding-left: 4px;
-    background: inherit; /* Inherits the background color from the message bubble */
+    background: inherit; 
 }
 
 .chat-footer {
@@ -287,31 +282,33 @@
     padding: 0.8rem;
     border: none;
     background-color: transparent;
-    color: white;
+    color: rgb(2, 2, 77);
     border-radius: 5px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: color 0.2s;
 }
 
 .chat-input button:hover {
     background-color: transparent;
+    color: rgb(30, 30, 150);
 }
 
 .chat-input button img {
     width: 24px;
     height: 24px;
-    filter: invert(10%) sepia(82%) saturate(5268%) hue-rotate(239deg) brightness(50%) contrast(101%); /* #051C9B navy blue */
+    filter: invert(10%) sepia(82%) saturate(5268%) hue-rotate(239deg) brightness(50%) contrast(101%);
     transition: filter 0.2s;
 }
 
 .chat-input button:hover img {
-    filter: invert(30%) sepia(82%) saturate(1600%) hue-rotate(205deg) brightness(95%) contrast(95%); /* lighter blue */
+    filter: invert(40%) sepia(85%) saturate(1836%) hue-rotate(199deg) brightness(100%) contrast(101%);
 }
 
 .message-image-container {
-    margin-top: 4px; /* Reduced margin to align better with avatar */
+    margin-top: 4px; 
     margin-bottom: 4px;
     max-width: 100%;
     position: relative;
@@ -332,7 +329,6 @@
     transform: scale(0.95);
 }
 
-/* Larger images for image-only messages */
 .message-bubble.image-only .message-image {
     max-width: 280px;
     max-height: 280px;
@@ -364,7 +360,6 @@
     margin-right: 0;
 }
 
-/* Loading spinner for image upload */
 .uploading::after {
     content: '';
     display: inline-block;
@@ -382,46 +377,39 @@
     to { transform: rotate(360deg); }
 }
 
-/* Add specific styles for image-only container to align with avatar */
 .image-only-container {
     margin-top: 0;
     margin-bottom: 0;
 }
 
 .received-wrapper .message-bubble.image-only {
-    margin-top: 0px; /* Match the avatar top margin */
+    margin-top: 0px; 
 }
 
-/* Adjust avatar alignment specifically for image messages */
 .received-wrapper:has(.message-bubble.image-only) .sender-avatar {
-    margin-top: 26px; /* Fine-tune alignment with image messages */
+    margin-top: 26px; 
 }
 
 @supports not (selector(:has(*))) {
-    /* Fallback for browsers without :has support */
     .received-wrapper .sender-avatar {
         margin-top: 8px;
     }
 }
 
-/* Add margin between consecutive image messages */
 .message-wrapper + .message-wrapper .message-bubble.image-only {
-    margin-top: 4px; /* Base margin for image messages */
+    margin-top: 4px; 
 }
 
-/* Increase margin between two consecutive image messages from the same person */
 .message-wrapper:has(.message-bubble.image-only) + .message-wrapper:has(.message-bubble.image-only):not(:has(.sender-avatar)) {
-    margin-top: 4px; /* Increased spacing between consecutive images */
+    margin-top: 4px; 
 }
 
-/* Fallback for browsers without :has support */
 @supports not (selector(:has(*))) {
     .message-wrapper + .message-wrapper .message-bubble.image-only {
         margin-top: 20px;
     }
 }
 
-/* Image Modal Styles */
 .image-modal-overlay {
     position: fixed;
     top: 0;
@@ -430,7 +418,7 @@
     bottom: 0;
     background: radial-gradient(circle at center, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.35) 100%);
     backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px); /* For Safari */
+    -webkit-backdrop-filter: blur(4px); 
     display: flex;
     justify-content: center;
     align-items: center;
