@@ -50,15 +50,12 @@ export default function ChatPage({ username, chat }) {
       reconnectDelay: 5000,
       debug: (str) => console.log("STOMP DEBUG:", str),
       onConnect: () => {
-        console.log("✅ Connected to WebSocket");
         setConnected(true);
         if (isGroup) {
           const topic = `/topic/group/${chat.id}`;
           console.log("📡 Subscribing to group topic:", topic);
           client.subscribe(topic, (message) => {
             const receivedMsg = JSON.parse(message.body);
-            console.log("📨 Received group message:", receivedMsg);
-            console.log("📨 Image URL in message:", receivedMsg.imageUrl);
             
             const formattedMsg = {
               groupId: chat.id,
@@ -73,7 +70,6 @@ export default function ChatPage({ username, chat }) {
           });
         } else {
           const topic = `/topic/messages/${username}`;
-          console.log("📡 Subscribing to topic:", topic);
 
           client.subscribe(topic, (message) => {
             const msg = JSON.parse(message.body);
@@ -127,7 +123,6 @@ export default function ChatPage({ username, chat }) {
         return response.json();
       })
       .then(data => {
-        console.log("📸 Upload response:", data);
         sendMessageWithImage(data.url);
       })
       .catch(error => {
@@ -234,12 +229,11 @@ export default function ChatPage({ username, chat }) {
           </div>
           <span className="friend-name">{chatTitle}</span>
         </div>
-        {!connected && <p className="connection-status">🔌 Connecting...</p>}
+        {!connected && <p className="connection-status">Connecting...</p>}
       </div>
 
       <div className="chat-box" ref={chatBoxRef}>
         {messages.map((msg, idx) => {
-          console.log("🧾 Rendering message:", msg)
           const isMe = msg.sender === username;
           const isSystem = msg.sender === "SYSTEM";
           const first = isFirstInSequence(idx);
@@ -281,12 +275,11 @@ export default function ChatPage({ username, chat }) {
                           className={`message-image ${imageLoading[msg.id] === false ? 'loaded' : ''}`}
                           onClick={() => openImageModal(`${API_URL}${msg.imageUrl}?t=${msg.timestamp || Date.now()}`)}
                           onLoad={() => {
-                            console.log("✅ Image loaded successfully:", `${API_URL}${msg.imageUrl}`);
                             setImageLoading(prev => ({...prev, [msg.id]: false}));
                             chatBoxRef.current?.scrollTo(0, chatBoxRef.current.scrollHeight);
                           }}
                           onError={(e) => {
-                            console.error("❌ Failed to load image:", `${API_URL}${msg.imageUrl}`, e);
+                            console.error("Failed to load image:", `${API_URL}${msg.imageUrl}`, e);
                             setImageLoading(prev => ({...prev, [msg.id]: false}));
                           }}
                         />
